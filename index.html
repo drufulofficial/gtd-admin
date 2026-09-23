@@ -1478,9 +1478,15 @@ async function ensureLive(){
 }
 async function setMode(m){
   if(m === 'live'){
-    const cfgText = $('#fbConfig').value.trim();
+    let cfgText = $('#fbConfig').value.trim();
     if(!cfgText){ toast('Paste your Firebase config first','error'); return; }
-    try{ JSON.parse(cfgText); }catch(e){ toast('Config is not valid JSON','error'); return; }
+    // Accept the full console snippet (const firebaseConfig = {...};) or
+    // just the object; take the outermost {...} and ignore everything else.
+    const bi = cfgText.indexOf('{'), bj = cfgText.lastIndexOf('}');
+    if(bi >= 0 && bj > bi) cfgText = cfgText.slice(bi, bj + 1);
+    try{ JSON.parse(cfgText); }catch(e){
+      toast('Config is not valid JSON — use the copy button in Firebase (Project settings > Your apps > Config) and paste directly, without passing it through other apps','error'); return; }
+    $('#fbConfig').value = cfgText;
     localStorage.setItem('gtd_fb_config', cfgText);
   }
   MODE = m; localStorage.setItem('gtd_mode', m);
@@ -1488,7 +1494,12 @@ async function setMode(m){
   try{
     await loadDB(); refreshBadges(); go('dashboard');
     toast(m==='live' ? 'Connected to live Firebase' : 'Using demo data (this browser)', 'cloud_done');
-  }catch(e){ toast('Could not load: '+e.message,'error'); }
+  }catch(e){
+    if(e.code === 'permission-denied'){
+      const who = (FB && FB.auth && FB.auth.currentUser) ? FB.auth.currentUser.email : 'not signed in';
+      toast('Permission denied (signed in as: '+who+'). Check in order: (1) SIGN IN with the gear > Live mode sign-in box; (2) that exact email exists in Authentication > Users AND in the firestore rules allowlist; (3) the rules are published (Firestore > Rules). See admin/DEPLOY.md','error');
+    } else { toast('Could not load: '+e.message,'error'); }
+  }
   updateModeChip();
 }
 function updateModeChip(){
