@@ -1554,10 +1554,20 @@ async function signInLive(){
     await ensureLive();
     const {signInWithEmailAndPassword } = FB.authMod;
     await signInWithEmailAndPassword(FB.auth, $('#authEmail').value, $('#authPass').value);
-    closeAuth(); toast('Signed in','lock_open');
+    closeAuth(); toast('Signed in as '+(FB.auth.currentUser ? FB.auth.currentUser.email : ''),'lock_open');
+    updateModeChip();
+  }catch(e){
+    // Sign-in itself failed (wrong password, no such user, domain not authorized...)
+    toast('Sign-in failed: '+(e.code||e.message),'error');
+    return;
+  }
+  try{
     await loadDB(); refreshBadges(); go('dashboard');
   }catch(e){
-    toast('Sign-in failed: '+(e.code||e.message),'error');
+    // Signed in fine, but Firestore refused the read — rules issue.
+    if(e.code === 'permission-denied'){
+      toast('Signed in, but Firestore denied the read. Fix: Firebase console > Firestore > Rules — paste backend/firestore.rules (it must contain adminEmails() with '+FB.auth.currentUser.email+' listed) and click Publish.','error');
+    } else { toast('Could not load: '+e.message,'error'); }
   }
 }
 function closeAuth(){ $('#authScrim').classList.remove('show'); }
