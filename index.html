@@ -1478,8 +1478,12 @@ function renderSeedProgress(finished){
   $('#seedStatus').textContent = bad.length
     ? bad.length + ' failed'
     : (next ? 'Pushing: '+next.label : (total && okc===total ? 'All '+total+' documents pushed.' : ''));
+  let hint = '';
+  if(bad.length && bad.every(i=>i.coll==='recipes')){
+    hint = '<br><b>All failures are recipes. The Firestore rules in the console still reject recipe writes (most likely the old \'slug\' field requirement, or the rule edit was never published). Fix: Firebase console > Firestore > Rules — make sure the line ends with hasAll([\'id\',\'title\',\'status\',\'updated_at\']) with NO \'slug\', click Publish, then press Retry failed here.</b>';
+  }
   $('#seedErrors').innerHTML = bad.length
-    ? bad.slice(0,10).map(i=>'• '+esc(i.label)+' — '+esc(i.error)).join('<br>') + (bad.length>10 ? '<br>…and '+(bad.length-10)+' more' : '')
+    ? bad.slice(0,10).map(i=>'• '+esc(i.label)+' — '+esc(i.error)).join('<br>') + (bad.length>10 ? '<br>…and '+(bad.length-10)+' more' : '') + hint
     : '';
   const retry = $('#seedRetry');
   retry.style.display = (finished || !next) && bad.length ? '' : 'none';
