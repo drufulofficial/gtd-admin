@@ -227,6 +227,7 @@ table.tbl{width:100%;border-collapse:collapse;}
     <div class="topbar">
       <h2 id="viewTitle">Dashboard</h2>
       <button class="btn btn-secondary btn-sm" id="liveBtn" onclick="openSettings()"><span class="msr" style="font-size:15px">cloud_upload</span>Connect Firebase</button>
+      <button class="btn btn-secondary btn-sm" id="authBtn" style="display:none" onclick="authClick()"><span class="msr" style="font-size:15px">person</span>Sign in</button>
       <button class="btn btn-primary" onclick="newRecipe()"><span class="msr" style="font-size:16px">add</span>New recipe</button>
     </div>
     <div class="view" id="view"></div>
@@ -1492,6 +1493,15 @@ async function setMode(m){
   MODE = m; localStorage.setItem('gtd_mode', m);
   closeSettings();
   try{
+    if(m === 'live'){
+      await ensureLive();
+      if(!FB.auth.currentUser){
+        updateModeChip();
+        showAuth();
+        toast('Sign in with your admin email to load live data','lock');
+        return;
+      }
+    }
     await loadDB(); refreshBadges(); go('dashboard');
     toast(m==='live' ? 'Connected to live Firebase' : 'Using demo data (this browser)', 'cloud_done');
   }catch(e){
@@ -1502,7 +1512,23 @@ async function setMode(m){
   }
   updateModeChip();
 }
+function showAuth(){ $('#authScrim').classList.add('show'); }
+function authClick(){
+  if(!FB || !FB.auth || !FB.auth.currentUser){ showAuth(); return; }
+  FB.auth.signOut().then(()=>{ updateModeChip(); toast('Signed out','lock'); })
+    .catch(()=>{});
+}
+function updateAuthBtn(){
+  const btn = $('#authBtn'); if(!btn) return;
+  if(MODE !== 'live'){ btn.style.display = 'none'; return; }
+  btn.style.display = '';
+  const user = (FB && FB.auth) ? FB.auth.currentUser : null;
+  btn.innerHTML = user
+    ? '<span class="msr" style="font-size:15px">logout</span>' + esc(user.email) + ' &middot; Sign out'
+    : '<span class="msr" style="font-size:15px">person</span>Sign in';
+}
 function updateModeChip(){
+  updateAuthBtn();
   const chip = $('#modeChip');
   if(MODE === 'live'){
     let pid = ''; try{ pid = JSON.parse(localStorage.getItem('gtd_fb_config')).projectId; }catch(e){}
