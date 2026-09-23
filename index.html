@@ -281,6 +281,24 @@ table.tbl{width:100%;border-collapse:collapse;}
   </div>
 </div>
 
+<!-- firebase seed progress modal -->
+<div class="scrim" id="seedScrim" onclick="if(event.target===this)closeSeed()">
+  <div class="modal" style="max-width:460px">
+    <h3>Pushing seed data to Firebase</h3>
+    <div style="height:8px;background:var(--outline);border-radius:99px;overflow:hidden;margin:14px 0 8px">
+      <div id="seedBarFill" style="height:100%;width:0;background:var(--tomato);transition:width .2s"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:13px">
+      <span id="seedCount">0 / 0 done</span><span id="seedStatus"></span>
+    </div>
+    <div id="seedErrors" style="color:var(--error);font-size:12px;margin-top:10px;max-height:150px;overflow:auto"></div>
+    <div class="actions" style="margin-top:14px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeSeed()">Close</button>
+      <button class="btn btn-primary" id="seedRetry" style="display:none" onclick="retrySeedFailed()">Retry failed</button>
+    </div>
+  </div>
+</div>
+
 <!-- ingredient quick-add modal -->
 <div class="scrim" id="miScrim" onclick="if(event.target===this)closeMiModal()">
   <div class="modal" style="max-width:480px">
@@ -1409,24 +1427,78 @@ function renderImportReport(){
       ${x.warnings&&x.warnings.length?'<div style="color:#8A5A00;margin-top:3px">'+x.warnings.map(w=>'⚠ '+esc(w)).join('<br>')+'</div>':''}
     </div>`).join('')}`;
 }
+// Recipes need updated_at for the app's delta sync; seed data only has a
+// plain date. Strip editor-only fields and stamp it here.
+function normalizeRecipeForFirestore(r){
+  const clean = JSON.parse(JSON.stringify(r));
+  delete clean._history; delete clean.img_data;
+  if(!clean.updated_at){
+    const d = String(clean.updated || clean.created || '');
+    clean.updated_at = /^\d{4}-\d{2}-\d{2}$/.test(d) ? d + 'T12:00:00Z' : new Date().toISOString();
+  }
+  return clean;
+}
+
+let SEEDQ = null; // queue shared across resume/retry, null when finished clean
 async function seedLive(){
   if(MODE !== 'live'){ toast('Switch to live mode first (Settings)','error'); return; }
-  const fresh = seedDB();
-  const n = Object.keys(fresh.mi).length + fresh.collections.length + fresh.recipes.length + fresh.picks.length;
-  const overwrite = DB.recipes.length > 0 || Object.keys(DB.mi).length > 0;
-  const msg = overwrite
-    ? 'Your Firebase project already has content. Seeding again will OVERWRITE documents with the same ids. Continue?'
-    : 'Push the starter set ('+n+' documents) to your Firebase project?';
-  if(!confirm(msg)) return;
-  try{
-    for(const id of Object.keys(fresh.mi)) await putDoc('master_ingredients', id, fresh.mi[id]);
-    for(const c of fresh.collections) await putDoc('collections', c.id, c);
-    for(const r of fresh.recipes){ const {_history, img_data, ...clean} = r; await putDoc('recipes', r.id, clean); }
-    for(const p of fresh.picks) await putDoc('daily_picks', p.date, p);
-    await loadDB(); refreshBadges(); go('dashboard');
-    toast('Seed data pushed to Firebase','cloud_done');
-  }catch(e){
-    toast('Seed failed: '+(e.code||e.message),'error');
+  if(!SEEDQ){
+    const fresh = seedDB();
+    const q = [];
+    for(const id of Object.keys(fresh.mi)) q.push({coll:'master_ingredients', id, data:fresh.mi[id], label:fresh.mi[id].n || id, status:0});
+    for(const c of fresh.collections) q.push({coll:'collections', id:c.id, data:c, label:'Collection: '+(c.name || c.id), status:0});
+    for(const r of fresh.recipes) q.push({coll:'recipes', id:r.id, data:normalizeRecipeForFirestore(r), label:'Recipe: '+(r.title || r.id), status:0});
+    for(const p of fresh.picks) q.push({coll:'daily_picks', id:p.date, data:p, label:'Daily pick: '+p.date, status:0});
+    const overwrite = DB.recipes.length > 0 || Object.keys(DB.mi).length > 0;
+    const msg = overwrite
+      ? 'Your Firebase project already has content. Seeding again will OVERWRITE documents with the same ids. Continue?'
+      : 'Push the starter set ('+q.length+' documents) to your Firebase project?';
+    if(!confirm(msg)) return;
+    SEEDQ = q;
+  }
+  $('#seedScrim').classList.add('show');
+  renderSeedProgress();
+  await runSeedQueue();
+}
+async function runSeedQueue(){
+  for(const item of SEEDQ){
+    if(item.status) continue;
+    try{ await putDoc(item.coll, item.id, item.data); item.status = 1; }
+    catch(e){ item.status = 2; item.error = (e.code || e.message || String(e)); }
+    renderSeedProgress();
+  }
+  renderSeedProgress(true);
+}
+function renderSeedProgress(finished){
+  const q = SEEDQ || [];
+  const okc = q.filter(i=>i.status===1).length, bad = q.filter(i=>i.status===2), total = q.length;
+  $('#seedBarFill').style.width = (total ? Math.round((okc+bad.length)*100/total) : 0) + '%';
+  $('#seedCount').textContent = (okc+bad.length) + ' / ' + total + ' done';
+  const next = q.find(i=>!i.status);
+  $('#seedStatus').textContent = bad.length
+    ? bad.length + ' failed'
+    : (next ? 'Pushing: '+next.label : (total && okc===total ? 'All '+total+' documents pushed.' : ''));
+  $('#seedErrors').innerHTML = bad.length
+    ? bad.slice(0,10).map(i=>'• '+esc(i.label)+' — '+esc(i.error)).join('<br>') + (bad.length>10 ? '<br>…and '+(bad.length-10)+' more' : '')
+    : '';
+  const retry = $('#seedRetry');
+  retry.style.display = (finished || !next) && bad.length ? '' : 'none';
+  retry.textContent = 'Retry failed ('+bad.length+')';
+}
+async function retrySeedFailed(){
+  if(!SEEDQ) return;
+  for(const i of SEEDQ) if(i.status === 2) i.status = 0;
+  renderSeedProgress();
+  await runSeedQueue();
+}
+async function closeSeed(){
+  $('#seedScrim').classList.remove('show');
+  if(SEEDQ && !SEEDQ.some(i=>!i.status) && !SEEDQ.some(i=>i.status===2)){
+    SEEDQ = null;
+    try{
+      await loadDB(); refreshBadges(); go('dashboard');
+      toast('Seed data pushed to Firebase','cloud_done');
+    }catch(e){}
   }
 }
 async function commitImport(){
