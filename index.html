@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Good Tasty Daily — Content Admin Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..700,0..1,0&display=swap" rel="stylesheet">
+<style>
+/* =====================================================================
+   GOOD TASTY DAILY — CONTENT ADMIN PANEL (M2)
+   Owner-facing tool. Brand palette, desktop-first.
+   ===================================================================== */
+:root{
+  --tomato:#E4572E; --primary:#C8401F; --basil:#2F7D4F; --gold:#F2A93B;
+  --text:#2B2B2B; --text2:#6B6B6B;
+  --bg:#FFF8F0; --surface:#FFFFFF; --outline:#EDE3D6;
+  --error:#B3261E; --error-bg:#FCE8E6; --info:#2B6CB0;
+  --radius:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
+.msr{font-family:'Material Symbols Rounded';font-weight:normal;font-style:normal;font-size:20px;
+  line-height:1;letter-spacing:normal;display:inline-block;white-space:nowrap;
+  -webkit-font-smoothing:antialiased;font-variation-settings:'FILL' 0;}
+.msr.fill{font-variation-settings:'FILL' 1;}
+h1,h2,h3,h4{font-family:'Poppins';}
+
+/* ---------- shell ---------- */
+.shell{display:grid;grid-template-columns:236px 1fr;min-height:100vh;}
+.side{background:var(--surface);border-right:1px solid var(--outline);padding:20px 14px;
+  display:flex;flex-direction:column;gap:2px;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.side .brand{display:flex;align-items:center;gap:9px;padding:2px 10px 16px;}
+.side .brand .wm{font-family:'Poppins';font-weight:700;font-size:14.5px;line-height:1.2;}
+.side .brand .wm b{color:var(--tomato);font-weight:700;}
+.side .brand .sub{font-size:10px;color:var(--text2);letter-spacing:.4px;margin-top:1px;}
+.navbtn{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;border:none;
+  background:none;font-family:'Inter';font-size:13.5px;font-weight:500;color:var(--text);cursor:pointer;
+  width:100%;text-align:left;}
+.navbtn:hover{background:rgba(228,87,46,.08);}
+.navbtn.active{background:var(--tomato);color:#fff;}
+.navbtn .msr{font-size:19px;}
+.navbtn .cnt{margin-left:auto;background:var(--error);color:#fff;font-size:10.5px;font-weight:600;
+  border-radius:99px;padding:1.5px 7px;}
+.side .sidefoot{margin-top:auto;padding:12px 10px 2px;font-size:11px;color:var(--text2);line-height:1.5;
+  border-top:1px solid var(--outline);}
+.modechip{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:600;
+  border-radius:99px;padding:4px 10px;letter-spacing:.4px;}
+.modechip.demo{background:rgba(242,169,59,.16);color:#8A5A00;border:1px solid rgba(242,169,59,.5);}
+.modechip.live{background:rgba(47,125,79,.12);color:var(--basil);border:1px solid rgba(47,125,79,.4);}
+
+.main{display:flex;flex-direction:column;min-width:0;}
+.topbar{background:var(--surface);border-bottom:1px solid var(--outline);padding:12px 26px;
+  display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:40;}
+.topbar h2{font-size:17px;font-weight:600;flex:1;}
+.view{padding:24px 26px 60px;max-width:1200px;width:100%;}
+
+/* ---------- generic ---------- */
+.btn{font-family:'Inter';font-weight:600;font-size:13px;border:none;cursor:pointer;border-radius:11px;
+  padding:0 15px;height:38px;display:inline-flex;align-items:center;gap:7px;transition:transform .12s;}
+.btn:active{transform:scale(.97);}
+.btn .msr{font-size:17px;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-secondary{background:var(--surface);color:var(--primary);border:1.5px solid var(--primary);}
+.btn-ghost{background:transparent;color:var(--primary);}
+.btn-danger{background:var(--surface);color:var(--error);border:1.5px solid var(--error);}
+.btn-sm{height:31px;font-size:12px;padding:0 11px;border-radius:8px;}
+.btn[disabled]{opacity:.5;cursor:default;}
+.card{background:var(--surface);border:1px solid var(--outline);border-radius:var(--radius);
+  box-shadow:0 1px 2px rgba(43,43,43,.04);}
+input[type=text],input[type=number],input[type=date],input[type=email],input[type=password],
+select,textarea{font-family:'Inter';font-size:13.5px;color:var(--text);background:var(--surface);
+  border:1.5px solid var(--outline);border-radius:9px;padding:8px 11px;outline:none;width:100%;}
+input:focus,select:focus,textarea:focus{border-color:var(--tomato);}
+label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px;}
+.row{display:flex;gap:14px;}
+.grow{flex:1;min-width:0;}
+table.tbl{width:100%;border-collapse:collapse;}
+.tbl th{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--text2);
+  text-align:left;padding:10px 12px;border-bottom:1.5px solid var(--outline);}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--outline);vertical-align:middle;font-size:13px;}
+.tbl tr:hover td{background:rgba(228,87,46,.035);}
+.tbl tr.clickable{cursor:pointer;}
+.chip{display:inline-flex;align-items:center;gap:5px;border-radius:99px;padding:3.5px 10px;
+  font-size:11.5px;font-weight:600;}
+.chip.pub{background:rgba(47,125,79,.12);color:var(--basil);}
+.chip.draft{background:rgba(242,169,59,.15);color:#8A5A00;}
+.chip.hidden{background:var(--outline);color:var(--text2);}
+.chip.err{background:var(--error-bg);color:var(--error);}
+.chip.ok{background:rgba(47,125,79,.12);color:var(--basil);}
+.thumb{width:44px;height:44px;border-radius:9px;object-fit:cover;background:
+  linear-gradient(135deg,hsl(24 70% 62%),hsl(24 60% 40%));display:flex;align-items:center;
+  justify-content:center;color:#fff;flex-shrink:0;}
+.searchwrap{position:relative;}
+.searchwrap .msr{position:absolute;left:10px;top:9px;color:var(--text2);font-size:18px;}
+.searchwrap input{padding-left:34px;}
+.empty{padding:48px 20px;text-align:center;color:var(--text2);}
+.empty .msr{font-size:38px;color:var(--outline);}
+.empty h4{margin-top:10px;color:var(--text);}
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
+.toolbar .grow{flex:1;min-width:180px;}
+
+/* ---------- dashboard ---------- */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:22px;}
+.stat{padding:16px 18px;}
+.stat .msr{font-size:20px;color:var(--tomato);}
+.stat b{display:block;font-family:'Poppins';font-size:27px;font-weight:700;margin-top:6px;}
+.stat span{font-size:12px;color:var(--text2);}
+.stat.warn b{color:var(--error);}
+.dashcols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+@media(max-width:1100px){.dashcols{grid-template-columns:1fr;}}
+.listcard h4{font-size:13px;font-weight:600;padding:13px 16px 4px;color:var(--text2);display:flex;gap:7px;align-items:center;}
+.listcard .li{display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--outline);}
+.listcard .li:last-child{border-bottom:none;}
+.listcard .li .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;}
+.listcard .li b{font-family:'Poppins';font-size:14px;}
+.listcard .li .bar{height:5px;border-radius:99px;background:var(--outline);flex:1.2;min-width:30px;overflow:hidden;}
+.listcard .li .bar i{display:block;height:100%;background:var(--tomato);border-radius:99px;}
+
+/* ---------- recipe editor ---------- */
+.edgrid{display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start;}
+@media(max-width:1050px){.edgrid{grid-template-columns:1fr;}}
+.edsec{padding:18px;}
+.edsec h4{font-size:14px;font-weight:600;margin-bottom:13px;display:flex;gap:7px;align-items:center;}
+.edsec h4 .msr{color:var(--tomato);font-size:18px;}
+.ingrow{display:grid;grid-template-columns:1.7fr .55fr .75fr 1.3fr auto;gap:7px;align-items:center;margin-bottom:7px;}
+.ingrow .fl{display:flex;gap:4px;}
+.ingrow .fl button{width:28px;height:34px;border-radius:8px;border:1.5px solid var(--outline);background:var(--surface);
+  cursor:pointer;color:var(--text2);font-size:12px;font-weight:700;}
+.ingrow .fl button.on{background:var(--tomato);border-color:var(--tomato);color:#fff;}
+.ingrow .fl button:hover{border-color:var(--tomato);}
+.ingrow input.amt{text-align:right;}
+.grouph{display:flex;gap:8px;align-items:center;margin:14px 0 8px;}
+.grouph input{font-weight:600;}
+.autowrap{position:relative;}
+.autodrop{position:absolute;top:36px;left:0;right:0;background:var(--surface);border:1px solid var(--outline);
+  border-radius:9px;box-shadow:0 10px 28px rgba(30,20,10,.18);z-index:30;max-height:180px;overflow-y:auto;display:none;}
+.autodrop.show{display:block;}
+.autodrop div{padding:7px 11px;font-size:12.5px;cursor:pointer;display:flex;justify-content:space-between;gap:8px;}
+.autodrop div:hover{background:rgba(228,87,46,.07);}
+.autodrop .gid{color:var(--text2);font-size:10.5px;}
+.steprow{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;}
+.steprow .n{width:26px;height:26px;border-radius:50%;background:var(--bg);border:1.5px solid var(--tomato);
+  color:var(--tomato);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:6px;}
+.checkline{display:flex;gap:8px;align-items:center;font-size:13px;padding:5px 0;cursor:pointer;user-select:none;}
+.checkline input{width:auto;}
+.checkline.wn{color:var(--error);}
+.checkline.wn .msr{font-size:17px;color:var(--gold);}
+.imgbox{border:1.5px dashed var(--outline);border-radius:12px;padding:14px;text-align:center;background:var(--bg);}
+.imgbox img{max-width:100%;border-radius:9px;margin-bottom:8px;}
+.imgbox .sizes{font-size:11px;color:var(--text2);line-height:1.6;}
+.hist .hi{padding:9px 0;border-bottom:1px solid var(--outline);font-size:12.5px;}
+.hist .hi:last-child{border-bottom:none;}
+.hist .hi .meta{color:var(--text2);font-size:11px;}
+.warnbox{background:rgba(242,169,59,.12);border:1px solid rgba(242,169,59,.5);border-radius:11px;
+  padding:11px 14px;margin-bottom:14px;font-size:12.5px;line-height:1.6;}
+.warnbox b{display:flex;gap:6px;align-items:center;margin-bottom:3px;color:#8A5A00;}
+.errbox{background:var(--error-bg);border:1px solid rgba(179,38,30,.35);border-radius:11px;
+  padding:11px 14px;margin-bottom:14px;font-size:12.5px;line-height:1.6;color:var(--error);}
+
+/* ---------- import ---------- */
+.importbox textarea{min-height:170px;font-family:ui-monospace,monospace;font-size:12px;}
+.report-item{border-bottom:1px solid var(--outline);padding:10px 2px;font-size:12.5px;line-height:1.5;}
+.report-item:last-child{border-bottom:none;}
+.report-item .ok{color:var(--basil);font-weight:600;}
+.report-item .bad{color:var(--error);font-weight:600;}
+
+/* ---------- modal ---------- */
+.scrim{position:fixed;inset:0;background:rgba(30,18,8,.45);z-index:100;display:none;
+  align-items:center;justify-content:center;padding:20px;}
+.scrim.show{display:flex;}
+.modal{background:var(--surface);border-radius:18px;max-width:560px;width:100%;max-height:88vh;
+  overflow-y:auto;padding:22px 24px;box-shadow:0 30px 80px rgba(20,10,0,.35);}
+.modal h3{font-size:16px;margin-bottom:14px;}
+.modal .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;}
+
+/* toast */
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);
+  font-size:13px;font-weight:500;padding:11px 18px;border-radius:99px;display:flex;gap:8px;align-items:center;
+  opacity:0;transition:opacity .25s;pointer-events:none;z-index:200;box-shadow:0 10px 30px rgba(0,0,0,.3);}
+.toast.show{opacity:1;}
+.toast .msr{font-size:17px;color:var(--basil);}
+
+/* collections */
+.colgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;}
+.colcard{padding:15px;}
+.colcard h4{font-size:14.5px;display:flex;align-items:center;gap:8px;}
+.colcard .arrows{display:flex;gap:6px;}
+.colcard .arrows button{width:30px;height:30px;border-radius:8px;border:1.5px solid var(--outline);
+  background:var(--surface);cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;}
+.colcard .arrows button:hover{border-color:var(--tomato);color:var(--tomato);}
+
+/* picks */
+.pickday{display:flex;gap:14px;align-items:center;padding:11px 16px;border-bottom:1px solid var(--outline);}
+.pickday:last-child{border-bottom:none;}
+.pickday .dte{width:96px;flex-shrink:0;}
+.pickday .dte b{font-family:'Poppins';font-size:14px;display:block;}
+.pickday .dte span{font-size:11px;color:var(--text2);}
+.pickday.today{background:rgba(228,87,46,.05);}
+
+.repline td .txt{max-width:420px;}
+.repline .st-actions{display:flex;gap:5px;}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="brand">
+      <svg width="34" height="34" viewBox="0 0 64 64"><g stroke="#E4572E" stroke-width="4" stroke-linecap="round" fill="none"><path d="M23 27 c-3.5-5 3.5-6.5 0-13"/><path d="M32 25 c-3.5-5 3.5-6.5 0-13"/><path d="M41 27 c-3.5-5 3.5-6.5 0-13"/></g><path d="M10 34 a22 22 0 0 0 44 0 z" fill="#E4572E"/><ellipse cx="32" cy="34" rx="22" ry="4" fill="#C8401F"/><circle cx="44" cy="46.5" r="3.4" fill="#F2A93B"/></svg>
+      <div><div class="wm">Good <b>Tasty</b> Daily</div><div class="sub">CONTENT ADMIN PANEL</div></div>
+    </div>
+    <button class="navbtn active" data-view="dashboard" onclick="go('dashboard')"><span class="msr">dashboard</span>Dashboard</button>
+    <button class="navbtn" data-view="recipes" onclick="go('recipes')"><span class="msr">menu_book</span>Recipes<span class="cnt" id="draftCnt" style="display:none"></span></button>
+    <button class="navbtn" data-view="ingredients" onclick="go('ingredients')"><span class="msr">inventory</span>Master ingredients</button>
+    <button class="navbtn" data-view="collections" onclick="go('collections')"><span class="msr">collections_bookmark</span>Collections</button>
+    <button class="navbtn" data-view="picks" onclick="go('picks')"><span class="msr">event_available</span>Daily picks</button>
+    <button class="navbtn" data-view="reports" onclick="go('reports')"><span class="msr">flag</span>Problem reports<span class="cnt" id="repCnt" style="display:none"></span></button>
+    <button class="navbtn" data-view="import" onclick="go('import')"><span class="msr">upload_file</span>Import / Export</button>
+    <div class="sidefoot">
+      <span class="modechip demo" id="modeChip">DEMO DATA</span>
+      <div style="margin-top:8px">Everything here is editable and saved to this browser. Switch to live Firebase any time from the top bar.</div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <h2 id="viewTitle">Dashboard</h2>
+      <button class="btn btn-secondary btn-sm" id="liveBtn" onclick="openSettings()"><span class="msr" style="font-size:15px">cloud_upload</span>Connect Firebase</button>
+      <button class="btn btn-primary" onclick="newRecipe()"><span class="msr" style="font-size:16px">add</span>New recipe</button>
+    </div>
+    <div class="view" id="view"></div>
+  </div>
+</div>
+
+<!-- settings / firebase modal -->
+<div class="scrim" id="settingsScrim" onclick="if(event.target===this)closeSettings()">
+  <div class="modal">
+    <h3>Panel settings</h3>
+    <label>Data source</label>
+    <div style="display:flex;gap:10px;margin-bottom:16px">
+      <button class="btn btn-secondary" style="flex:1" id="modeDemoBtn" onclick="setMode('demo')">Demo (this browser)</button>
+      <button class="btn btn-secondary" style="flex:1" id="modeLiveBtn" onclick="setMode('live')">Live Firebase</button>
+    </div>
+    <div id="fbConfigWrap" style="display:none">
+      <label>Firebase web app config (from Firebase console → Project settings → Your apps)</label>
+      <textarea id="fbConfig" style="min-height:120px;font-family:ui-monospace;font-size:11.5px" placeholder='{
+  "apiKey": "AIza...",
+  "authDomain": "your-project.firebaseapp.com",
+  "projectId": "your-project",
+  "storageBucket": "your-project.appspot.com",
+  "messagingSenderId": "1234567890",
+  "appId": "1:1234567890:web:abc123"
+}'></textarea>
+      <div style="font-size:11.5px;color:var(--text2);line-height:1.6;margin-top:6px">
+        The panel stores this in your browser only. Sign in with the admin account you created in
+        Firebase → Authentication → Users. Deploy <code>backend/firestore.rules</code> first, and set the
+        admin custom claim (see the README) or writes will be rejected.
+      </div>
+    </div>
+    <label style="margin-top:16px">Demo data</label>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-secondary btn-sm" onclick="exportAll()">Export backup (JSON)</button>
+      <button class="btn btn-danger btn-sm" onclick="resetDemo()">Reset demo data</button>
+    </div>
+    <div class="actions"><button class="btn btn-primary" onclick="closeSettings()">Done</button></div>
+  </div>
+</div>
+
+<!-- sign-in modal (live mode) -->
+<div class="scrim" id="authScrim" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="modal" style="max-width:400px">
+    <h3>Sign in</h3>
+    <label>Email</label><input type="email" id="authEmail" placeholder="you@example.com">
+    <label style="margin-top:10px">Password</label><input type="password" id="authPass" placeholder="••••••••">
+    <div class="actions" style="justify-content:space-between">
+      <button class="btn btn-ghost" onclick="closeAuth()">Cancel</button>
+      <button class="btn btn-primary" onclick="signInLive()">Sign in</button>
+    </div>
+  </div>
+</div>
+
+<!-- ingredient quick-add modal -->
+<div class="scrim" id="miScrim" onclick="if(event.target===this)closeMiModal()">
+  <div class="modal" style="max-width:480px">
+    <h3 id="miModalTitle">New master ingredient</h3>
+    <input type="hidden" id="miEditId">
+    <label>Name</label><input type="text" id="miName" placeholder="e.g. buttermilk">
+    <div class="row" style="margin-top:10px">
+      <div class="grow"><label>Group</label><select id="miGroup"></select></div>
+      <div class="grow"><label>Parent ingredient (optional)</label><select id="miParent"></select></div>
+    </div>
+    <label style="margin-top:10px">Allergens</label><div id="miAllergens" style="display:flex;flex-wrap:wrap;gap:7px"></div>
+    <div class="row" style="margin-top:10px">
+      <div class="grow"><label>Synonyms (comma separated)</label><input type="text" id="miSyn" placeholder="e.g. scallions, spring onions"></div>
+      <div style="width:120px"><label>&nbsp;</label><label class="checkline" style="padding:8px 0"><input type="checkbox" id="miBasic">Basic</label></div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-ghost" onclick="closeMiModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMiFromModal()">Save ingredient</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span class="msr">check_circle</span><span id="toastMsg"></span></div>
+<script>
+/* =====================================================================
+   SEED DATA — master ingredients (6.1), 20 recipes (8.1), collections,
+   sample problem reports and daily picks. Embedded for demo mode;
+   exported to backend/seed/*.json for the live database.
+   ===================================================================== */
+const SEED_MI = {
+  chicken:{n:'Chicken',g:'Proteins',s:['chicken breast','chicken thigh','chicken thighs','chicken breasts']},
+  chicken_breast:{n:'Chicken breast',g:'Proteins',p:'chicken'},
+  chicken_thigh:{n:'Chicken thighs',g:'Proteins',p:'chicken'},
+  shrimp:{n:'Shrimp',g:'Proteins',a:['Shellfish']},
+  egg:{n:'Eggs',g:'Proteins',a:['Eggs'],w:true},
+  salmon:{n:'Salmon',g:'Proteins',a:['Fish']},
+  smoked_sausage:{n:'Smoked sausage',g:'Proteins',s:['kielbasa','andouille']},
+  tofu:{n:'Tofu',g:'Proteins'},
+  ground_beef:{n:'Ground beef',g:'Proteins',s:['beef','hamburger meat']},
+  onion:{n:'Onion',g:'Vegetables',s:['yellow onion','white onion','red onion']},
+  red_onion:{n:'Red onion',g:'Vegetables',p:'onion'},
+  garlic:{n:'Garlic',g:'Vegetables',s:['garlic cloves','cloves garlic']},
+  bell_pepper:{n:'Bell pepper',g:'Vegetables',s:['peppers','capsicum']},
+  carrot:{n:'Carrot',g:'Vegetables'},
+  peas:{n:'Frozen peas',g:'Vegetables',s:['peas']},
+  potato:{n:'Potatoes',g:'Vegetables',s:['baby potatoes','potato']},
+  broccoli:{n:'Broccoli',g:'Vegetables'},
+  spinach:{n:'Spinach',g:'Vegetables'},
+  tomato:{n:'Tomato',g:'Vegetables',s:['tomatoes','roma tomato']},
+  scallion:{n:'Green onions',g:'Vegetables',s:['scallions','spring onions']},
+  lettuce:{n:'Lettuce',g:'Vegetables',s:['romaine','shredded lettuce']},
+  lemon:{n:'Lemon',g:'Vegetables'},
+  lime:{n:'Lime',g:'Vegetables'},
+  banana:{n:'Banana',g:'Vegetables',s:['bananas','ripe banana']},
+  parsley:{n:'Parsley',g:'Vegetables',s:['fresh parsley']},
+  basil:{n:'Basil',g:'Vegetables',s:['fresh basil']},
+  berries:{n:'Mixed berries',g:'Vegetables',s:['blueberries','strawberries','raspberries']},
+  butter:{n:'Butter',g:'Dairy',a:['Milk']},
+  milk:{n:'Milk',g:'Dairy',a:['Milk']},
+  heavy_cream:{n:'Heavy cream',g:'Dairy',a:['Milk'],s:['double cream']},
+  cheddar:{n:'Cheddar',g:'Dairy',a:['Milk'],s:['cheddar cheese','shredded cheese']},
+  parmesan:{n:'Parmesan',g:'Dairy',a:['Milk'],s:['parmigiano','grated parmesan']},
+  mozzarella:{n:'Mozzarella',g:'Dairy',a:['Milk'],s:['fresh mozzarella']},
+  greek_yogurt:{n:'Greek yogurt',g:'Dairy',a:['Milk'],s:['yogurt','plain yogurt']},
+  rice:{n:'Rice',g:'Pantry',s:['white rice','long grain rice','jasmine rice']},
+  cooked_rice:{n:'Cooked rice',g:'Pantry',p:'rice'},
+  pasta:{n:'Pasta',g:'Pantry',a:['Wheat'],s:['spaghetti','penne','linguine','macaroni','elbow macaroni']},
+  noodles:{n:'Ramen noodles',g:'Pantry',a:['Wheat'],s:['ramen','instant noodles','egg noodles','spaghetti']},
+  breadcrumbs:{n:'Breadcrumbs',g:'Pantry',a:['Wheat'],s:['panko']},
+  tortillas:{n:'Flour tortillas',g:'Pantry',a:['Wheat'],s:['tortillas','taco shells']},
+  soy_sauce:{n:'Soy sauce',g:'Pantry',a:['Soy','Wheat']},
+  salsa:{n:'Salsa',g:'Pantry',s:['chunky salsa','pico de gallo']},
+  taco_seasoning:{n:'Taco seasoning',g:'Spices & Herbs',s:['taco mix']},
+  honey:{n:'Honey',g:'Pantry'},
+  peanut_butter:{n:'Peanut butter',g:'Pantry',a:['Peanuts']},
+  oats:{n:'Rolled oats',g:'Pantry',s:['oats','old fashioned oats']},
+  cocoa:{n:'Cocoa powder',g:'Pantry',s:['cocoa','unsweetened cocoa']},
+  chocolate_chips:{n:'Chocolate chips',g:'Pantry',a:['Milk','Soy'],s:['mini chocolate chips']},
+  chia:{n:'Chia seeds',g:'Pantry'},
+  granola:{n:'Granola',g:'Pantry',a:['Tree nuts','Milk']},
+  canned_tomatoes:{n:'Canned diced tomatoes',g:'Pantry',s:['diced tomatoes','canned tomatoes','crushed tomatoes']},
+  vegetable_broth:{n:'Vegetable broth',g:'Pantry',s:['veg broth','stock','vegetable stock','chicken broth']},
+  sesame_oil:{n:'Sesame oil',g:'Pantry',a:['Sesame']},
+  balsamic_vinegar:{n:'Balsamic vinegar',g:'Pantry'},
+  maple_syrup:{n:'Maple syrup',g:'Pantry'},
+  vanilla:{n:'Vanilla extract',g:'Pantry',s:['vanilla']},
+  baking_powder:{n:'Baking powder',g:'Pantry'},
+  salt:{n:'Salt',g:'Spices & Herbs',b:true,s:['kosher salt','sea salt']},
+  pepper:{n:'Black pepper',g:'Spices & Herbs',b:true,s:['pepper','ground pepper']},
+  olive_oil:{n:'Olive oil',g:'Pantry',b:true,s:['oil','cooking oil']},
+  vegetable_oil:{n:'Vegetable oil',g:'Pantry',b:true,s:['canola oil','oil']},
+  water:{n:'Water',g:'Pantry',b:true},
+  sugar:{n:'Sugar',g:'Pantry',b:true,s:['white sugar','granulated sugar']},
+  flour:{n:'All-purpose flour',g:'Pantry',b:true,a:['Wheat'],s:['flour','plain flour']},
+  paprika:{n:'Paprika',g:'Spices & Herbs'},
+  garlic_powder:{n:'Garlic powder',g:'Spices & Herbs'},
+  italian_seasoning:{n:'Italian seasoning',g:'Spices & Herbs'},
+  chili_flakes:{n:'Chili flakes',g:'Spices & Herbs',s:['red pepper flakes','crushed red pepper']},
+  cinnamon:{n:'Cinnamon',g:'Spices & Herbs'},
+  cumin:{n:'Cumin',g:'Spices & Herbs',s:['ground cumin']},
+};
+const SEED_RECIPES = [
+{id:'garlic-butter-shrimp',title:'Garlic Butter Shrimp',desc:'Shrimp sizzling in garlic butter with a squeeze of lemon. One pan, 20 minutes.',prep:5,cook:15,total:20,serves:4,diff:'Easy',meals:['Dinner'],cuisine:'American',methods:['Stovetop','One-pan'],diets:['High-protein','Gluten-free'],h:24,created:'2026-09-18',updated:'2026-09-20',views:412,saves:88,reports_count:0,img:true,status:'published',
+ groups:[{t:'',ing:[{id:'shrimp',a:1.5,u:'lb',n:'peeled and deveined'},{id:'butter',a:4,u:'tbsp'},{id:'garlic',a:6,u:'clove',n:'minced'},{id:'lemon',a:1,u:'piece',n:'juiced'},{id:'parsley',a:.25,u:'cup',n:'chopped'},{id:'salt',to:1},{id:'pepper',to:1},{id:'chili_flakes',a:.25,u:'tsp',opt:1}]}],
+ steps:[{t:'Pat the shrimp dry with paper towels. Season with salt and pepper.',ing:['shrimp','salt','pepper']},{t:'Melt 2 tbsp of the butter in a large skillet over medium-high heat.',ing:['butter']},{t:'Add the shrimp in one layer. Cook 2 minutes per side, until pink and opaque.',time:120,ing:['shrimp']},{t:'Add the garlic and the rest of the butter. Cook 30 seconds, until fragrant.',time:30,ing:['garlic','butter']},{t:'Take off the heat. Squeeze in the lemon and toss with the parsley.',ing:['lemon','parsley']},{t:'Serve right away with rice or crusty bread.',ing:[]}],
+ tips:'Swap parsley for cilantro. Leftovers keep 2 days in the fridge — tasty cold in a wrap.',nutrition:{cal:320,p:38,c:4,f:18},collections:['30-minute-dinners','one-pan-meals']},
+{id:'honey-garlic-chicken',title:'Honey Garlic Chicken Thighs',desc:'Sticky, sweet and savory chicken thighs. A weeknight favorite over rice.',prep:5,cook:25,total:30,serves:4,diff:'Easy',meals:['Dinner'],cuisine:'American',methods:['Stovetop'],diets:['Dairy-free','High-protein'],h:18,created:'2026-09-10',updated:'2026-09-10',views:507,saves:132,reports_count:1,img:true,status:'published',
+ groups:[{t:'',ing:[{id:'chicken_thigh',a:8,u:'',n:'boneless, skinless',w:1},{id:'honey',a:.33,u:'cup'},{id:'soy_sauce',a:.25,u:'cup'},{id:'garlic',a:4,u:'clove',n:'minced'},{id:'rice',a:2,u:'cup',n:'cooked, for serving'}]}],
+ steps:[{t:'Season the chicken thighs with salt and pepper.',ing:['chicken_thigh']},{t:'Sear the chicken in a hot skillet, 3 minutes per side, until golden.',time:180,ing:['chicken_thigh']},{t:'Mix the honey, soy sauce and garlic in a bowl, then pour over the chicken.',ing:['honey','soy_sauce','garlic']},{t:'Simmer until the sauce is sticky and the chicken reaches 165°F, about 8 minutes.',time:480,ing:['chicken_thigh']},{t:'Spoon the glaze over the chicken and serve with rice.',ing:['rice']}],
+ tips:'No thighs? Breast works too — cut cooking time by 2 minutes. Broil 1 minute for extra glaze.',nutrition:{cal:520,p:41,c:52,f:16},collections:['30-minute-dinners','under-10']},
+{id:'veggie-omelet',title:'15-Minute Veggie Omelet',desc:'Fluffy eggs with bell pepper, onion and melty cheddar. Breakfast in 15.',prep:5,cook:10,total:15,serves:2,diff:'Easy',meals:['Breakfast','Lunch'],cuisine:'American',methods:['Stovetop'],diets:['Vegetarian','Low-carb','High-protein','Gluten-free'],h:42,created:'2026-09-15',updated:'2026-09-15',views:289,saves:61,reports_count:0,img:true,status:'published',
+ groups:[{t:'',ing:[{id:'egg',a:6,u:'',w:1},{id:'butter',a:1,u:'tbsp'},{id:'bell_pepper',a:.5,u:'piece',n:'diced'},{id:'onion',a:.25,u:'piece',n:'diced'},{id:'cheddar',a:.5,u:'cup',n:'shredded'},{id:'milk',a:2,u:'tbsp',opt:1}]}],
+ steps:[{t:'Beat the eggs with a splash of milk (if using), salt and pepper.',ing:['egg','milk']},{t:'Melt the butter in a nonstick skillet over medium heat. Soften the pepper and onion, 3 minutes.',time:180,ing:['butter','bell_pepper','onion']},{t:'Pour in the eggs. Push them gently from the edges as they set, 2 minutes.',time:120,ing:['egg']},{t:'Sprinkle the cheddar on one half. Fold the omelet over and slide onto a plate.',ing:['cheddar']}],
+ tips:'Any veg works: spinach, mushrooms, leftover roasted potatoes. Eggs are done at 160°F.',nutrition:{cal:390,p:24,c:6,f:30},collections:['quick-breakfasts','under-10']},
+{id:'chicken-fried-rice',title:'Chicken Fried Rice',desc:'Takeout-style fried rice, faster than delivery. Great for leftover rice.',prep:10,cook:15,total:25,serves:4,diff:'Easy',meals:['Dinner','Lunch'],cuisine:'Asian',methods:['Stovetop','One-pan'],diets:['High-protein','Dairy-free'],h:36,created:'2026-08-30',updated:'2026-09-02',views:631,saves:201,reports_count:0,img:true,status:'published',
+ groups:[{t:'',ing:[{id:'chicken_breast',a:1,u:'lb',n:'cut in bite-size pieces'},{id:'cooked_rice',a:4,u:'cup',n:'day-old is best'},{id:'onion',a:.5,u:'piece',n:'diced'},{id:'garlic',a:3,u:'clove',n:'minced'},{id:'soy_sauce',a:3,u:'tbsp'},{id:'egg',a:2,u:'',n:'lightly beaten',w:1},{id:'peas',a:1,u:'cup'},{id:'carrot',a:1,u:'piece',n:'diced'}]},{t:'To finish',ing:[{id:'scallion',a:2,u:'piece',n:'sliced',opt:1},{id:'sesame_oil',a:1,u:'tsp',opt:1}]}],
+ steps:[{t:'Scramble the eggs in a little oil until just set. Set aside.',ing:['egg']},{t:'Cook the chicken in the same pan until it reaches 165°F, about 5 minutes.',time:300,ing:['chicken_breast']},{t:'Add the carrot, onion and garlic. Stir-fry 3 minutes.',time:180,ing:['carrot','onion','garlic']},{t:'Add the rice, peas and soy sauce. Press and toss until hot and a little crispy, 4 minutes.',time:240,ing:['cooked_rice','peas','soy_sauce']},{t:'Fold in the eggs and drizzle with sesame oil (if using).',ing:['egg','sesame_oil','scallion']}],
+ tips:'Cold rice fries better than fresh. No chicken day? Use leftover pork or just veggies.',nutrition:{cal:480,p:32,c:58,f:13},collections:['30-minute-dinners','one-pan-meals']},
+{id:'mug-brownie',title:'10-Minute Mug Brownie',desc:'One mug, one fork, one warm chocolate brownie. Ready in 10 minutes.',prep:3,cook:7,total:10,serves:1,diff:'Easy',meals:['Dessert','Snack'],cuisine:'American',methods:['Microwave','No-cook'],diets:['Vegetarian'],h:14,created:'2026-09-01',updated:'2026-09-01',views:845,saves:310,reports_count:2,img:true,status:'published',
+ groups:[{t:'',ing:[{id:'flour',a:4,u:'tbsp'},{id:'sugar',a:4,u:'tbsp'},{id:'cocoa',a:2,u:'tbsp'},{id:'milk',a:3,u:'tbsp'},{id:'vegetable_oil',a:1,u:'tbsp'},{id:'vanilla',a:.25,u:'tsp',opt:1},{id:'salt',a:1,u:'pinch',to:1}]}],
+ steps:[{t:'Stir the flour, sugar, cocoa and a pinch of salt in a large mug.',ing:['flour','sugar','cocoa','salt']},{t:'Add the milk, oil and vanilla. Mix until smooth and no dry spots remain.',ing:['milk','vegetable_oil','vanilla']},{t:'Microwave 70–90 seconds. Stop while the top is still slightly glossy — it firms up as it sits.',time:80,ing:[]},{t:'Cool 1 minute. Eat warm, straight from the mug.',time:60,ing:[]}],
+ tips:'Top with a scoop of ice cream. Doubles fine in a cereal bowl — add 20 seconds.',nutrition:{cal:430,p:6,c:64,f:18},collections:['sweet-treats','under-10']},
+{id:'air-fryer-tenders',title:'Air Fryer Chicken Tenders',desc:'Crispy golden tenders with no deep fryer. Kids approve.',prep:10,cook:10,total:20,serves:4,diff:'Easy',meals:['Dinner','Snack'],cuisine:'American',methods:['Air fryer'],diets:['High-protein'],h:30,created:'2026-09-05',updated:'2026-09-05',views:733,saves:264,reports_count:0,img:true,status:'published',
+ groups:[{t:'',ing:[{id:'chicken_breast',a:1,u:'lb',n:'sliced into strips'},{id:'breadcrumbs',a:1,u:'cup'},{id:'egg',a:1,u:'',n:'beaten',w:1},{id:'paprika',a:1,u:'tsp'},{id:'garlic_powder',a:1,u:'tsp'}]}],
+ steps:[{t:'Mix the breadcrumbs, paprika, garlic powder, salt and pepper in a shallow bowl.',ing:['breadcrumbs','paprika','garlic_powder','salt','pepper']},{t:'Dip each strip in egg, then press into the crumbs.',ing:['egg','breadcrumbs']},{t:'Air fry at 400°F for 10 minutes, flipping once, until golden and 165°F inside.',time:600,ing:['chicken_breast']},{t:'Rest 2 minutes. Serve with ketchup, honey mustard or ranch.',time:120,ing:[]}],
+ tips:'Spritz the tops with oil for extra crunch. Leftovers stay crispy in the air fryer for 3 minutes.',nutrition:{cal:410,p:38,c:26,f:16},collections:['air-fryer','under-10','30-minute-dinners']},
+{id:'sheet-pan-sausage',title:'Sheet-Pan Sausage and Veggies',desc:'Everything roasts on one pan while you set the table. Easy cleanup.',prep:10,cook:20,total:30,serves:4,diff:'Easy',meals:['Dinner'],cuisine:'American',methods:['Oven','Sheet pan'],diets:['Dairy-free','Gluten-free'],h:8,created:'2026-08-25',updated:'2026-08-25',views:598,saves:145,reports_count:0,img:true,status:'published',
+ groups:[{t:'',ing:[{id:'smoked_sausage',a:12,u:'oz',n:'sliced in coins'},{id:'potato',a:1.5,u:'lb',n:'baby potatoes, halved'},{id:'bell_pepper',a:2,u:'piece',n:'sliced'},{id:'red_onion',a:1,u:'piece',n:'wedged'},{id:'olive_oil',a:2,u:'tbsp'},{id:'italian_seasoning',a:2,u:'tsp'}]}],
+ steps:[{t:'Heat the oven to 425°F. Toss everything with oil and seasoning on a sheet pan.',ing:['potato','bell_pepper','red_onion','olive_oil','italian_seasoning']},{t:'Roast 15 minutes, until the potatoes are nearly tender.',time:900,ing:['potato']},{t:'Push everything to one side, add the sausage, toss, and roast 8 more minutes.',time:480,ing:['smoked_sausage']},{t:'Broil 2 minutes for color. Serve straight from the pan.',time:120,ing:[]}],
+ tips:'Swap in broccoli or carrots. Sausage first? Roast the veggies 5 minutes, then add it.',nutrition:{cal:560,p:26,c:48,f:29},collections:['one-pan-meals','30-minute-dinners']},
+{id:'tomato-basil-pasta',title:'One-Pan Tomato Basil Pasta',desc:'Everything simmers in one pot — even the pasta. No draining.',prep:5,cook:20,total:25,serves:4,diff:'Easy',meals:['Dinner','Lunch'],cuisine:'Italian',methods:['Stovetop','One-pan'],diets:['Vegetarian'],h:4,created:'2026-09-12',updated:'2026-09-12',views:402,saves:97,reports_count:0,img:true,status:'published',
+ groups:[{t:'',ing:[{id:'pasta',a:12,u:'oz'},{id:'canned_tomatoes',a:1,u:'can',n:'14 oz'},{id:'garlic',a:4,u:'clove',n:'sliced'},{id:'vegetable_broth',a:2.5,u:'cup'},{id:'basil',a:.25,u:'cup',n:'torn'},{id:'parmesan',a:.5,u:'cup',n:'grated',opt:1},{id:'olive_oil',a:2,u:'tbsp'}]}],
+ steps:[{t:'Put the pasta, tomatoes, garlic, broth and oil in a wide pan. Bring to a boil.',ing:['pasta','canned_tomatoes','garlic','vegetable_broth','olive_oil']},{t:'Simmer, stirring often, until the pasta is al dente and the sauce coats it, 12–14 minutes.',time:780,ing:['pasta']},{t:'Off the heat, stir in the basil. Top with parmesan (if using).',ing:['basil','parmesan']}],
+ tips:'Add a splash of cream at the end for a rosé sauce. Gluten-free pasta works — stir more often.',nutrition:{cal:450,p:14,c:78,f:9},collections:['one-pan-meals','under-10','30-minute-dinners']},
+{id:'peanut-noodles',title:'15-Minute Peanut Noodles',desc:'Creamy, tangy noodles from pantry staples. Faster than takeout.',prep:5,cook:10,total:15,serves:2,diff:'Easy',meals:['Dinner','Lunch','Snack'],cuisine:'Asian',methods:['Stovetop','No-cook'],diets:['Vegetarian','Dairy-free'],h:48,created:'2026-09-08',updated:'2026-09-08',views:377,saves:118,reports_count:1,img:true,status:'published',
+ groups:[{t:'',ing:[{id:'noodles',a:8,u:'oz'},{id:'peanut_butter',a:.33,u:'cup',n:'creamy'},{id:'soy_sauce',a:3,u:'tbsp'},{id:'lime',a:1,u:'piece',n:'juiced'},{id:'honey',a:1,u:'tbsp'},{id:'garlic',a:2,u:'clove',n:'grated'},{id:'chili_flakes',a:.5,u:'tsp',opt:1}]}],
+ steps:[{t:'Cook the noodles according to the package. Save 1/2 cup of the water.',ing:['noodles']},{t:'Whisk the peanut butter, soy sauce, lime juice, honey and garlic with 1/3 cup hot noodle water.',ing:['peanut_butter','soy_sauce','lime','honey','garlic']},{t:'Toss the drained noodles with the sauce, loosening with more water if needed.',ing:['noodles']},{t:'Top with chili flakes. Serve warm or cold.',ing:['chili_flakes']}],
+ tips:'Almond butter works too (then it contains tree nuts). Add shredded chicken for extra protein.',nutrition:{cal:640,p:22,c:84,f:22},collections:['under-10']},
+{id:'berry-parfait',title:'5-Minute Berry Parfait',desc:'Layers of yogurt, granola and berries. Zero cooking.',prep:5,cook:0,total:5,serves:1,diff:'Easy',meals:['Breakfast','Snack','Dessert'],cuisine:'American',methods:['No-cook'],diets:['Vegetarian','Gluten-free'],h:335,created:'2026-09-03',updated:'2026-09-03',views:356,saves:73,reports_count:0,img:true,status:'published',
+ groups:[{t:'',ing:[{id:'greek_yogurt',a:1,u:'cup'},{id:'granola',a:.5,u:'cup'},{id:'berries',a:.5,u:'cup'},{id:'honey',a:1,u:'tbsp'}]}],
+ steps:[{t:'Spoon half the yogurt into a glass.',ing:['greek_yogurt']},{t:'Add a layer of berries, then granola. Repeat.',ing:['berries','granola']},{t:'Drizzle with honey and eat within 5 minutes, before the granola softens.',ing:['honey']}],
+ tips:'Frozen-and-thawed berries work — the juices swirl into the yogurt nicely.',nutrition:{cal:380,p:18,c:52,f:11},collections:['quick-breakfasts','sweet-treats','under-10']},
+{id:'overnight-oats',title:'Overnight Oats',desc:'Mix tonight, breakfast is ready at 6 am. Three minutes of work.',prep:3,cook:0,total:3,serves:1,diff:'Easy',meals:['Breakfast'],cuisine:'American',methods:['No-cook'],diets:['Vegetarian'],h:210,created:'2026-08-28',updated:'2026-08-28',views:294,saves:86,reports_count:0,img:true,status:'published',
+ groups:[{t:'',ing:[{id:'oats',a:.5,u:'cup'},{id:'milk',a:.5,u:'cup'},{id:'greek_yogurt',a:.25,u:'cup'},{id:'chia',a:1,u:'tbsp'},{id:'honey',a:2,u:'tsp'},{id:'cinnamon',a:.25,u:'tsp',opt:1}]}],
+ steps:[{t:'Stir everything in a jar. It takes 2 minutes.',ing:['oats','milk','greek_yogurt','chia','honey','cinnamon']},{t:'Cover and refrigerate overnight (at least 4 hours).',ing:[]},{t:'In the morning, loosen with a splash of milk. Add fruit if you like.',ing:['milk']}],
+ tips:'Keeps 3 days in the fridge — make three jars on Sunday. Add the fruit just before eating.',nutrition:{cal:350,p:17,c:52,f:8},collections:['quick-breakfasts','under-10']},
+{id:'garlic-chicken-skillet',title:'15-Minute Garlic Chicken',desc:'Four ingredients and a hot skillet. Dinner with barely a shopping list.',prep:5,cook:10,total:15,serves:4,diff:'Easy',meals:['Dinner'],cuisine:'American',methods:['Stovetop','One-pan'],diets:['Dairy-free','High-protein'],h:26,created:'2026-09-20',updated:'2026-09-20',views:156,saves:31,reports_count:0,img:false,status:'published',
+ groups:[{t:'',ing:[{id:'chicken_breast',a:1,u:'lb',n:'cut in strips'},{id:'onion',a:1,u:'piece',n:'sliced'},{id:'garlic',a:4,u:'clove',n:'minced'},{id:'soy_sauce',a:2,u:'tbsp'}]}],
+ steps:[{t:'Sear the chicken in a hot skillet until golden, 4 minutes.',time:240,ing:['chicken_breast']},{t:'Add the onion and garlic. Cook 3 minutes, until soft.',time:180,ing:['onion','garlic']},{t:'Add the soy sauce and toss until the chicken reaches 165°F.',time:180,ing:['soy_sauce','chicken_breast']},{t:'Serve over rice with the pan juices.',ing:[]}],
+ tips:'Add broccoli florets with the onion for a one-pan upgrade.',nutrition:{cal:300,p:42,c:9,f:10},collections:['30-minute-dinners','under-10','one-pan-meals']},
+{id:'salsa-chicken',title:'Slow Cooker Salsa Chicken',desc:'Three ingredients in the morning, shredded chicken by dinner.',prep:5,cook:240,total:245,serves:6,diff:'Easy',meals:['Dinner'],cuisine:'Mexican',methods:['Slow cooker'],diets:['Gluten-free','Dairy-free','High-protein'],h:350,created:'2026-08-20',updated:'2026-08-20',views:520,saves:176,reports_count:0,img:true,status:'published',
+ groups:[{t:'',ing:[{id:'chicken_breast',a:1.5,u:'lb'},{id:'salsa',a:1,u:'cup'},{id:'taco_seasoning',a:2,u:'tbsp'},{id:'onion',a:.5,u:'piece',n:'sliced',opt:1}]}],
+ steps:[{t:'Put the chicken, salsa, taco seasoning and onion in the slow cooker. Toss.',ing:['chicken_breast','salsa','taco_seasoning','onion']},{t:'Cook on low for 4 hours, until the chicken shreds easily.',time:14400,ing:[]},{t:'Shred with two forks, stir, and serve in bowls or tortillas.',ing:[]}],
+ tips:'Freeze half in portions for next week. Great over baked potatoes too.',nutrition:{cal:280,p:34,c:7,f:11},collections:['slow-cooker']},
+{id:'instant-pot-mac',title:'Instant Pot Mac and Cheese',desc:'One pot, no draining, ready before the oven preheats.',prep:5,cook:10,total:15,serves:6,diff:'Easy',meals:['Dinner','Lunch'],cuisine:'American',methods:['Instant Pot'],diets:['Vegetarian'],h:45,created:'2026-08-15',updated:'2026-08-15',views:610,saves:229,reports_count:0,img:true,status:'published',
+ groups:[{t:'',ing:[{id:'pasta',a:16,u:'oz'},{id:'milk',a:2,u:'cup'},{id:'cheddar',a:3,u:'cup',n:'shredded'},{id:'butter',a:2,u:'tbsp'}]}],
+ steps:[{t:'Put the pasta, milk, butter, salt and pepper in the pot. Stir.',ing:['pasta','milk','butter']},{t:'Pressure cook 4 minutes, then quick-release.',time:240,ing:[]},{t:'Stir in the cheddar a handful at a time until silky.',ing:['cheddar']},{t:'Eat immediately — it thickens as it sits.',ing:[]}],
+ tips:'Splash in milk to loosen leftovers. A pinch of mustard powder sharpens the flavor.',nutrition:{cal:520,p:22,c:56,f:23},collections:['slow-cooker','under-10']},
+{id:'energy-bites',title:'No-Bake Peanut Butter Energy Bites',desc:'Mix, roll, chill. A lunchbox favorite with no oven.',prep:10,cook:0,total:10,serves:12,diff:'Easy',meals:['Snack','Dessert'],cuisine:'American',methods:['No-cook'],diets:['Vegetarian'],h:285,created:'2026-09-06',updated:'2026-09-06',views:470,saves:190,reports_count:0,img:true,status:'published',
+ groups:[{t:'',ing:[{id:'oats',a:1,u:'cup'},{id:'peanut_butter',a:.5,u:'cup'},{id:'honey',a:.33,u:'cup'},{id:'chocolate_chips',a:.25,u:'cup'},{id:'vanilla',a:1,u:'tsp',opt:1}]}],
+ steps:[{t:'Stir everything in a bowl until it holds together.',ing:['oats','peanut_butter','honey','chocolate_chips','vanilla']},{t:'Roll into 20 bite-size balls. Wet hands help.',ing:[]},{t:'Chill 30 minutes. Store in the fridge up to a week.',time:1800,ing:[]}],
+ tips:'Swap chocolate chips for raisins. Add 2 tbsp cocoa for a chocolate version.',nutrition:{cal:130,p:4,c:17,f:6},collections:['sweet-treats','under-10']},
+{id:'beef-tacos',title:'20-Minute Beef Tacos',desc:'Weeknight tacos with a quick skillet filling and easy toppings.',prep:8,cook:12,total:20,serves:4,diff:'Easy',meals:['Dinner'],cuisine:'Mexican',methods:['Stovetop'],diets:['High-protein'],h:16,created:'2026-09-14',updated:'2026-09-14',views:388,saves:110,reports_count:0,img:true,status:'published',
+ groups:[{t:'',ing:[{id:'ground_beef',a:1,u:'lb'},{id:'taco_seasoning',a:2,u:'tbsp'},{id:'tortillas',a:8,u:'piece'},{id:'onion',a:.5,u:'piece',n:'diced'},{id:'lettuce',a:1,u:'cup',n:'shredded'},{id:'tomato',a:1,u:'piece',n:'diced'},{id:'cheddar',a:.5,u:'cup',n:'shredded',opt:1}]},{t:'Extras',ing:[{id:'salsa',a:.5,u:'cup',opt:1}]}],
+ steps:[{t:'Brown the beef with the onion in a skillet over medium heat, 6 minutes.',time:360,ing:['ground_beef','onion']},{t:'Drain the fat, stir in the taco seasoning and 1/3 cup water. Simmer 2 minutes.',time:120,ing:['taco_seasoning']},{t:'Warm the tortillas in a dry pan or microwave.',ing:['tortillas']},{t:'Build tacos with beef, lettuce, tomato, cheddar and salsa.',ing:['lettuce','tomato','cheddar','salsa']}],
+ tips:'Double the seasoning batch and freeze half for next taco night.',nutrition:{cal:540,p:32,c:38,f:28},collections:['30-minute-dinners','under-10']},
+{id:'lemon-salmon',title:'Baked Lemon Butter Salmon',desc:'Foil-pack salmon that cooks itself while you make a side.',prep:5,cook:15,total:20,serves:4,diff:'Easy',meals:['Dinner'],cuisine:'American',methods:['Oven'],diets:['High-protein','Gluten-free'],h:190,created:'2026-09-16',updated:'2026-09-16',views:301,saves:99,reports_count:0,img:true,status:'published',
+ groups:[{t:'',ing:[{id:'salmon',a:4,u:'piece',n:'fillets'},{id:'butter',a:2,u:'tbsp',n:'melted'},{id:'lemon',a:1,u:'piece',n:'sliced'},{id:'garlic',a:2,u:'clove',n:'grated'},{id:'parsley',a:2,u:'tbsp',n:'chopped'}]}],
+ steps:[{t:'Heat the oven to 400°F. Lay each fillet on foil, brush with butter and garlic.',ing:['salmon','butter','garlic']},{t:'Top with lemon slices. Seal the foil into packs.',ing:['lemon']},{t:'Bake 12–15 minutes, until the salmon flakes and reaches 145°F.',time:780,ing:['salmon']},{t:'Open carefully (steam!), sprinkle parsley, serve.',ing:['parsley']}],
+ tips:'Asparagus or green beans can ride along in the foil pack.',nutrition:{cal:380,p:36,c:2,f:24},collections:['30-minute-dinners','under-10']},
+{id:'tomato-soup',title:'Creamy Tomato Soup',desc:'Silky 30-minute tomato soup. Grilled cheese not required, but encouraged.',prep:5,cook:25,total:30,serves:4,diff:'Easy',meals:['Lunch','Dinner'],cuisine:'American',methods:['Stovetop','One-pan'],diets:['Vegetarian','Gluten-free'],h:12,created:'2026-08-22',updated:'2026-08-22',views:266,saves:70,reports_count:0,img:true,status:'published',
+ groups:[{t:'',ing:[{id:'canned_tomatoes',a:1,u:'can',n:'28 oz'},{id:'vegetable_broth',a:2,u:'cup'},{id:'heavy_cream',a:.5,u:'cup'},{id:'onion',a:.5,u:'piece',n:'diced'},{id:'garlic',a:2,u:'clove',n:'minced'},{id:'butter',a:1,u:'tbsp'},{id:'sugar',a:1,u:'tsp'},{id:'basil',a:3,u:'piece',n:'leaves'}]}],
+ steps:[{t:'Soften the onion and garlic in butter, 4 minutes.',time:240,ing:['onion','garlic','butter']},{t:'Add tomatoes, broth and the sugar. Simmer 15 minutes.',time:900,ing:['canned_tomatoes','vegetable_broth','sugar']},{t:'Blend smooth (immersion blender is easiest), then stir in the cream.',time:0,ing:['heavy_cream']},{t:'Season and top with basil.',ing:['basil']}],
+ tips:'A pinch of baking soda tames acidity. Freeze portions for lunches.',nutrition:{cal:230,p:6,c:20,f:15},collections:['30-minute-dinners','one-pan-meals']},
+{id:'banana-pancakes',title:'Banana Oat Pancakes',desc:'Blender pancakes with no flour. Naturally sweet.',prep:5,cook:15,total:20,serves:2,diff:'Easy',meals:['Breakfast'],cuisine:'American',methods:['Stovetop'],diets:['Vegetarian'],h:55,created:'2026-09-19',updated:'2026-09-19',views:142,saves:38,reports_count:0,img:false,status:'draft',
+ groups:[{t:'',ing:[{id:'oats',a:1,u:'cup',n:'blitzed to flour'},{id:'banana',a:1,u:'piece',n:'ripe'},{id:'egg',a:1,u:'',w:1},{id:'milk',a:.75,u:'cup'},{id:'baking_powder',a:1,u:'tsp'},{id:'cinnamon',a:.25,u:'tsp',opt:1}]}],
+ steps:[{t:'Blend everything until smooth, about 30 seconds.',ing:['oats','banana','egg','milk','baking_powder','cinnamon']},{t:'Cook 1/4-cup portions in a buttered pan, 2 minutes per side.',time:120,ing:[]},{t:'Serve with maple syrup or yogurt.',ing:[]}],
+ tips:'Riper banana = sweeter pancakes. The batter thickens as it sits — add a splash of milk.',nutrition:{cal:300,p:13,c:45,f:8},collections:['quick-breakfasts','under-10']},
+{id:'caprese-plate',title:'Caprese Snack Plate',desc:'Tomato, mozzarella, basil, done. A 10-minute no-cook plate.',prep:10,cook:0,total:10,serves:2,diff:'Easy',meals:['Snack','Lunch'],cuisine:'Italian',methods:['No-cook'],diets:['Vegetarian','Gluten-free','Low-carb'],h:320,created:'2026-09-21',updated:'2026-09-21',views:44,saves:9,reports_count:0,img:false,status:'draft',
+ groups:[{t:'',ing:[{id:'tomato',a:2,u:'piece',n:'sliced'},{id:'mozzarella',a:8,u:'oz',n:'sliced'},{id:'basil',a:8,u:'piece',n:'leaves'},{id:'olive_oil',a:1,u:'tbsp'},{id:'balsamic_vinegar',a:1,u:'tbsp'}]}],
+ steps:[{t:'Alternate tomato and mozzarella slices on a plate.',ing:['tomato','mozzarella']},{t:'Tuck in basil leaves.',ing:['basil']},{t:'Drizzle with oil and balsamic. Finish with salt and pepper.',ing:['olive_oil','balsamic_vinegar']}],
+ tips:'Salt the tomatoes 5 minutes ahead — they taste sweeter.',nutrition:{cal:340,p:17,c:9,f:27},collections:['under-10']},
+];
+const SEED_COLLECTIONS = [
+ {id:'30-minute-dinners',name:'30-Minute Dinners',desc:'Weeknight heroes',order:1,show_on_home:true},
+ {id:'air-fryer',name:'Air Fryer Favorites',desc:'Crispy, no deep fryer',order:2,show_on_home:true},
+ {id:'one-pan-meals',name:'One-Pan Meals',desc:'Less washing up',order:3,show_on_home:true},
+ {id:'under-10',name:'Under 10 Ingredients',desc:'Short shopping list',order:4,show_on_home:true},
+ {id:'quick-breakfasts',name:'Quick Breakfasts',desc:'Ready in 15 or less',order:5,show_on_home:true},
+ {id:'sweet-treats',name:'Sweet Treats',desc:'Little desserts',order:6,show_on_home:true},
+ {id:'slow-cooker',name:'Slow Cooker & Instant Pot',desc:'Set it and forget it',order:7,show_on_home:false},
+];
+const SEED_REPORTS = [
+ {id:'r1',recipe_id:'honey-garlic-chicken',type:'Wrong amount',text:'8 tbsp honey listed in another app version — please double check the 1/3 cup.',email:'sam@example.com',status:'new',created_at:'2026-09-21T16:40:00Z',app_version:'1.0.0',device:'Samsung Galaxy A15'},
+ {id:'r2',recipe_id:'mug-brownie',type:'Wrong step',text:'90 seconds was too long in my 1100W microwave — 70 was perfect.',email:'',status:'new',created_at:'2026-09-21T19:05:00Z',app_version:'1.0.0',device:'Pixel 7a'},
+ {id:'r3',recipe_id:'peanut-noodles',type:'Allergen wrong',text:'Says dairy-free but I reacted — check the noodles brand for milk.',email:'',status:'new',created_at:'2026-09-20T12:15:00Z',app_version:'1.0.0',device:'Motorola G Power'},
+];
+const SEED_PICKS = [
+ {date:'2026-09-22',recipe_id:'garlic-butter-shrimp',created_by:'owner',created_at:'2026-09-18T10:00:00Z'},
+ {date:'2026-09-23',recipe_id:'sheet-pan-sausage',created_by:'owner',created_at:'2026-09-18T10:01:00Z'},
+ {date:'2026-09-24',recipe_id:'beef-tacos',created_by:'owner',created_at:'2026-09-18T10:02:00Z'},
+];
+</script>
+<script>
+/* =====================================================================
+   DATA LAYER — demo mode (localStorage) + live mode (Firebase)
+   ===================================================================== */
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s ?? '').replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"');
+const UNITS = ['','tsp','tbsp','cup','fl oz','oz','lb','g','ml','can','clove','slice','piece','pinch'];
+const DIETS = ['Vegetarian','Vegan','Gluten-free','Dairy-free','Low-carb','High-protein'];
+const ALLERGENS = ['Milk','Eggs','Fish','Shellfish','Tree nuts','Peanuts','Wheat','Soy','Sesame'];
+const METHODS = ['Air fryer','Sheet pan','Slow cooker','Instant Pot','Stovetop','Oven','One-pan','No-cook','Microwave'];
+const MEALTYPES = ['Breakfast','Lunch','Dinner','Snack','Dessert'];
+const MIGROUPS = ['Proteins','Vegetables','Dairy','Pantry','Spices & Herbs'];
+
+let DB = null;               // {recipes:[], mi:{}, collections:[], reports:[], picks:[]}
+let VIEW = 'dashboard';      // current view
+let EDIT = null;             // recipe being edited (working copy)
+let MODE = localStorage.getItem('gtd_mode') || 'demo';
+let FB = null;               // live firebase modules when connected
+
+function seedDB(){
+  return {
+    recipes: JSON.parse(JSON.stringify(SEED_RECIPES)).map(r=>({...r, _history:[]})),
+    mi: JSON.parse(JSON.stringify(SEED_MI)),
+    collections: JSON.parse(JSON.stringify(SEED_COLLECTIONS)),
+    reports: JSON.parse(JSON.stringify(SEED_REPORTS)),
+    picks: JSON.parse(JSON.stringify(SEED_PICKS)),
+  };
+}
+function persist(){ if(MODE==='demo') localStorage.setItem('gtd_demo_db', JSON.stringify(DB)); }
+
+async function loadDB(){
+  if(MODE === 'demo'){
+    const raw = localStorage.getItem('gtd_demo_db');
+    DB = raw ? JSON.parse(raw) : seedDB();
+    if(!raw) persist();
+    return;
+  }
+  // live mode: pull every collection once (small data; admin-only tool)
+  await ensureLive();
+  const {collection, getDocs} = FB.fs;
+  const grab = async (name) => (await getDocs(collection(FB.db, name))).docs.map(d=>d.data());
+  const [recipes, miDocs, collections, reports, picks] = await Promise.all([
+    grab('recipes'), grab('master_ingredients'), grab('collections'), grab('problem_reports'), grab('daily_picks')]);
+  DB = {
+    recipes, mi: {}, collections, reports, picks,
+  };
+  miDocs.forEach(d => DB.mi[d.id] = d);
+}
+async function putDoc(coll, id, data){
+  data.id = id;
+  if(MODE === 'demo'){ persist(); return; }
+  await ensureLive();
+  const {doc, setDoc} = FB.fs;
+  await setDoc(doc(FB.db, coll, id), JSON.parse(JSON.stringify(data)));
+}
+async function delDoc(coll, id){
+  if(MODE === 'demo'){ persist(); return; }
+  await ensureLive();
+  const {doc, deleteDoc} = FB.fs;
+  await deleteDoc(doc(FB.db, coll, id));
+}
+
+/* ---------- shared helpers ---------- */
+const recipeById = id => DB.recipes.find(r=>r.id===id);
+function allergensOf(r){
+  const set = new Set();
+  (r.groups||[]).forEach(g=>(g.ing||[]).forEach(i=>{
+    const m = DB.mi[i.id]; if(m && m.a) m.a.forEach(x=>set.add(x));
+  }));
+  return Array.from(set);
+}
+function usedInCount(miId){
+  return DB.recipes.filter(r=>(r.groups||[]).some(g=>(g.ing||[]).some(i=>i.id===miId))).length;
+}
+function toast(msg, icon='check_circle'){
+  $('#toastMsg').textContent = msg;
+  $('#toast').firstElementChild.textContent = icon;
+  $('#toast').classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(()=>$('#toast').classList.remove('show'), 2600);
+}
+function slugify(s){
+  return s.toLowerCase().trim().replace(/['’]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+}
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+
+/* =====================================================================
+   VALIDATION — used by editor AND bulk import (single source of truth)
+   Returns {errors:[], warnings:[]} — errors block save, warnings show.
+   ===================================================================== */
+function validateRecipe(r){
+  const E = [], W = [];
+  if(!r.title || !r.title.trim()) E.push('Title is required.');
+  else if(r.title.length > 80) E.push('Title should be 80 characters or fewer.');
+  if(!r.id || !/^[a-z0-9-]+$/.test(r.id)) E.push('Recipe id/slug must be lowercase letters, numbers and hyphens.');
+  if(!r.desc || !r.desc.trim()) E.push('Short description is required.');
+  else if(r.desc.length > 200) E.push('Description must be 200 characters or fewer (currently '+r.desc.length+').');
+  if(!(r.prep >= 0)) E.push('Prep time is required.');
+  if(!(r.cook >= 0)) E.push('Cook time is required.');
+  if(!(r.total >= 1)) E.push('Total time must be at least 1 minute.');
+  if(!(r.serves >= 1 && r.serves <= 24)) E.push('Servings must be between 1 and 24.');
+  if(!['Easy','Medium'].includes(r.diff)) E.push('Difficulty must be Easy or Medium.');
+  if(!Array.isArray(r.meals) || !r.meals.length) E.push('Pick at least one meal type.');
+  else r.meals.forEach(m=>{ if(!MEALTYPES.includes(m)) E.push('Unknown meal type: '+m); });
+  (r.methods||[]).forEach(m=>{ if(!METHODS.includes(m)) E.push('Unknown cooking method: '+m); });
+  (r.diets||[]).forEach(d=>{ if(!DIETS.includes(d)) E.push('Unknown diet: '+d); });
+  (r.collections||[]).forEach(c=>{ if(!DB.collections.find(x=>x.id===c)) E.push('Unknown collection: '+c); });
+
+  let ingCount = 0;
+  (r.groups||[]).forEach((g,gi)=>{
+    if(!Array.isArray(g.ing) || !g.ing.length){ E.push('Group "'+(g.t||('#'+(gi+1)))+'" has no ingredients.'); return; }
+    g.ing.forEach((i,ii)=>{
+      ingCount++;
+      const pre = 'Ingredient '+(gi+1)+'.'+(ii+1)+': ';
+      if(!i.id || !DB.mi[i.id]) E.push(pre + (i.id ? '"'+i.id+'" is not in the master ingredient list.' : 'missing master ingredient link.'));
+      if(i.id && DB.mi[i.id] && i.u && !UNITS.includes(i.u)) E.push(pre+'unknown unit "'+i.u+'".');
+      if(!i.to && !(i.a > 0) && !i.u) E.push(pre+'needs an amount or a unit (or mark "to taste").');
+      if(!i.to && i.u && !(i.a >= 0)) E.push(pre+'unit given but amount is missing.');
+    });
+  });
+  if(!ingCount) E.push('Recipe needs at least one ingredient.');
+
+  if(!Array.isArray(r.steps) || !r.steps.length) E.push('Recipe needs at least one step.');
+  else r.steps.forEach((s,si)=>{
+    if(!s.t || !s.t.trim()) E.push('Step '+(si+1)+' has no text.');
+    (s.ing||[]).forEach(x=>{ if(!DB.mi[x]) E.push('Step '+(si+1)+' references unknown ingredient "'+x+'".'); });
+  });
+
+  if(!r.nutrition || !(r.nutrition.cal >= 0)) E.push('Calorie estimate is required (marked "estimate" in the app).');
+  else if(r.nutrition.cal > 2000) W.push('Calorie estimate looks high ('+r.nutrition.cal+' cal/serving). Double-check.');
+
+  if(!r.img && r.status === 'published') W.push('No photo. Recipes publish better with one.');
+  if(!r.total) W.push('Total time is zero.');
+  if(allergensOf(r).length === 0) W.push('No allergens detected — correct only if intentional.');
+  return {errors: E, warnings: W};
+}
+
+/* =====================================================================
+   ROUTER
+   ===================================================================== */
+const TITLES = {dashboard:'Dashboard', recipes:'Recipes', editor:'Recipe editor', ingredients:'Master ingredients',
+  collections:'Collections', picks:'Daily picks', reports:'Problem reports', import:'Import / Export'};
+function go(view){
+  VIEW = view;
+  $$('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
+  $('#viewTitle').textContent = TITLES[view] || '';
+  $('#liveBtn').style.display = view==='dashboard' || view==='import' ? '' : 'none';
+  ({dashboard:renderDashboard, recipes:renderRecipes, editor:renderEditor, ingredients:renderIngredients,
+    collections:renderCollections, picks:renderPicks, reports:renderReports, import:renderImport})[view]();
+  document.querySelector('.main').scrollTop = 0; window.scrollTo(0,0);
+}
+function refreshBadges(){
+  const drafts = DB.recipes.filter(r=>r.status==='draft').length;
+  const dc = $('#draftCnt'); dc.textContent = drafts; dc.style.display = drafts ? '' : 'none';
+  const reps = DB.reports.filter(r=>r.status==='new').length;
+  const rc = $('#repCnt'); rc.textContent = reps; rc.style.display = reps ? '' : 'none';
+}
+</script>
+<script>
+/* =====================================================================
+   VIEWS: dashboard + recipes + editor
+   ===================================================================== */
+function statusChip(s){
+  return `<span class="chip ${s}">${s==='published'?'Published':s==='draft'?'Draft':'Hidden'}</span>`;
+}
+function thumbHTML(r, size){
+  const sz = size || 44;
+  return `<div class="thumb" style="--h:${r.h||24};width:${sz}px;height:${sz}px">
+    ${r.img ? `<img src="${r.img_data || ''}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:9px">` :
+    `<span class="msr" style="color:#fff;font-size:${Math.round(sz*.45)}px">image_not_supported</span>`}</div>`;
+}
+function renderDashboard(){
+  const pub = DB.recipes.filter(r=>r.status==='published');
+  const drafts = DB.recipes.filter(r=>r.status==='draft');
+  const newReps = DB.reports.filter(r=>r.status==='new');
+  const todayPick = DB.picks.find(p=>p.date===todayISO());
+  const top = (key,n=5) => [...DB.recipes].filter(r=>r[key]).sort((a,b)=>b[key]-a[key]).slice(0,n);
+  const maxViews = Math.max(...top('views').map(r=>r.views),1);
+  const maxSaves = Math.max(...top('saves').map(r=>r.saves),1);
+  const maxRep = Math.max(...top('reports_count').map(r=>r.reports_count),1);
+  $('#view').innerHTML = `
+  <div class="stats">
+    <div class="card stat"><span class="msr">menu_book</span><b>${pub.length}</b><span>published recipes</span></div>
+    <div class="card stat"><span class="msr">edit_note</span><b>${drafts.length}</b><span>drafts</span></div>
+    <div class="card stat"><span class="msr">inventory</span><b>${Object.keys(DB.mi).length}</b><span>master ingredients</span></div>
+    <div class="card stat ${newReps.length?'warn':''}"><span class="msr">flag</span><b>${newReps.length}</b><span>new problem reports</span></div>
+    <div class="card stat"><span class="msr">event_available</span><b style="font-size:15px;line-height:1.35;margin-top:9px">${todayPick ? esc((recipeById(todayPick.recipe_id)||{}).title||todayPick.recipe_id) : 'Not set'}</b><span>today's pick</span></div>
+  </div>
+  <div class="dashcols">
+    <div class="card listcard"><h4><span class="msr" style="font-size:16px;color:var(--tomato)">visibility</span>Most viewed</h4>
+      ${top('views').map(r=>`<div class="li"><div class="nm">${esc(r.title)}</div><div class="bar"><i style="width:${Math.round(r.views/maxViews*100)}%"></i></div><b>${r.views}</b></div>`).join('') || '<div class="li">No data yet.</div>'}</div>
+    <div class="card listcard"><h4><span class="msr" style="font-size:16px;color:var(--tomato)">favorite</span>Most saved</h4>
+      ${top('saves').map(r=>`<div class="li"><div class="nm">${esc(r.title)}</div><div class="bar"><i style="width:${Math.round(r.saves/maxSaves*100)}%"></i></div><b>${r.saves}</b></div>`).join('') || '<div class="li">No data yet.</div>'}</div>
+    <div class="card listcard"><h4><span class="msr" style="font-size:16px;color:var(--tomato)">flag</span>Most reported</h4>
+      ${top('reports_count').filter(r=>r.reports_count>0).map(r=>`<div class="li"><div class="nm">${esc(r.title)}</div><div class="bar"><i style="width:${Math.round(r.reports_count/maxRep*100)}%;background:var(--error)"></i></div><b>${r.reports_count}</b></div>`).join('') || '<div class="li">No reports. Nice.</div>'}</div>
+  </div>`;
+}
+
+let recipeFilter = {q:'', status:'all'};
+function renderRecipes(){
+  const arr = DB.recipes.filter(r=>{
+    if(recipeFilter.status!=='all' && r.status!==recipeFilter.status) return false;
+    if(recipeFilter.q){
+      const q = recipeFilter.q.toLowerCase();
+      if(!(r.title.toLowerCase().includes(q) || (r.id||'').includes(q) || (r.meals||[]).join(' ').toLowerCase().includes(q))) return false;
+    }
+    return true;
+  }).sort((a,b)=>(b.updated_at||'').localeCompare(a.updated_at||''));
+  $('#view').innerHTML = `
+  <div class="toolbar">
+    <div class="grow searchwrap"><span class="msr">search</span>
+      <input type="text" placeholder="Search title, id or meal type" value="${esc(recipeFilter.q)}"
+        oninput="recipeFilter.q=this.value;renderRecipesTable()"></div>
+    <select style="width:150px" onchange="recipeFilter.status=this.value;renderRecipesTable()">
+      ${['all','published','draft','hidden'].map(s=>`<option value="${s}" ${recipeFilter.status===s?'selected':''}>${s==='all'?'All statuses':s}</option>`).join('')}
+    </select>
+    <button class="btn btn-secondary" onclick="go('import')"><span class="msr" style="font-size:16px">upload_file</span>Import</button>
+  </div>
+  <div class="card" style="overflow:hidden" id="recipesTable"></div>`;
+  renderRecipesTable();
+}
+function renderRecipesTable(){
+  const arr = DB.recipes.filter(r=>{
+    if(recipeFilter.status!=='all' && r.status!==recipeFilter.status) return false;
+    if(recipeFilter.q){
+      const q = recipeFilter.q.toLowerCase();
+      if(!(r.title.toLowerCase().includes(q) || (r.id||'').includes(q) || (r.meals||[]).join(' ').toLowerCase().includes(q))) return false;
+    }
+    return true;
+  }).sort((a,b)=>(b.updated_at||'').localeCompare(a.updated_at||''));
+  $('#recipesTable').innerHTML = `<table class="tbl"><thead><tr>
+    <th style="width:52px"></th><th>Recipe</th><th>Meal types</th><th>Time</th><th>Allergens</th><th>Views</th><th>Saves</th><th>Status</th><th>Updated</th><th style="width:210px"></th>
+  </tr></thead><tbody>
+  ${arr.map(r=>`<tr>
+    <td>${thumbHTML(r)}</td>
+    <td><b style="font-family:'Poppins';font-weight:500">${esc(r.title)}</b><div style="color:var(--text2);font-size:11px">${r.id}</div></td>
+    <td style="font-size:12px">${(r.meals||[]).join(', ')}</td>
+    <td>${r.total} min</td>
+    <td style="font-size:12px">${allergensOf(r).join(', ') || '<span style="color:var(--text2)">none</span>'}</td>
+    <td>${r.views||0}</td><td>${r.saves||0}</td>
+    <td>${statusChip(r.status)}</td>
+    <td style="font-size:12px;color:var(--text2)">${(r.updated_at||'').slice(0,10)}</td>
+    <td style="white-space:nowrap">
+      <button class="btn btn-secondary btn-sm" onclick="openEditor('${r.id}')">Edit</button>
+      ${r.status!=='published' ? `<button class="btn btn-primary btn-sm" onclick="quickPublish('${r.id}')">Publish</button>` :
+        `<button class="btn btn-ghost btn-sm" onclick="setStatus('${r.id}','draft')">Unpublish</button>`}
+      <button class="btn btn-danger btn-sm" onclick="dupRecipe('${r.id}')">Duplicate</button>
+    </td></tr>`).join('')}
+  </tbody></table>
+  ${arr.length ? '' : `<div class="empty"><span class="msr">search_off</span><h4>No recipes match.</h4></div>`}`;
+}
+function quickPublish(id){
+  const r = recipeById(id);
+  const {warnings} = validateRecipe(r);
+  if(warnings.length && !confirm('Heads up before publishing:\n\n- '+warnings.join('\n- ')+'\n\nPublish anyway?')) return;
+  setStatus(id, 'published', 'Published');
+}
+function setStatus(id, status, msg){
+  const r = recipeById(id);
+  pushHistory(r, 'Status → '+status);
+  r.status = status; r.updated_at = new Date().toISOString();
+  persist(); putDoc('recipes', r.id, r);
+  toast(msg || 'Status updated', status==='published'?'publish':'undo');
+  go(VIEW);
+}
+function dupRecipe(id){
+  const r = recipeById(id);
+  const copy = JSON.parse(JSON.stringify(r));
+  copy.id = r.id + '-copy'; copy.title = r.title + ' (copy)'; copy.status = 'draft';
+  copy.views = 0; copy.saves = 0; copy.reports_count = 0; copy._history = [];
+  copy.created = todayISO(); copy.updated_at = new Date().toISOString();
+  DB.recipes.push(copy); persist(); putDoc('recipes', copy.id, copy);
+  toast('Duplicated as a draft','content_copy');
+  openEditor(copy.id);
+}
+
+/* ---------- editor ---------- */
+function newRecipe(){
+  EDIT = {__srcId:'', id:'', title:'', desc:'', prep:10, cook:15, total:25, serves:4, diff:'Easy', meals:['Dinner'],
+    cuisine:'American', methods:['Stovetop'], diets:[], h:24, created:todayISO(), updated_at:'',
+    views:0, saves:0, reports_count:0, img:false, img_data:'', status:'draft',
+    groups:[{t:'', ing:[{id:'',a:'',u:'',n:''}]}], steps:[{t:'',time:'',ing:[]}], tips:'', nutrition:{cal:0,p:0,c:0,f:0}, collections:[]};
+  go('editor');
+}
+function openEditor(id){
+  const r = recipeById(id);
+  EDIT = JSON.parse(JSON.stringify(r));
+  EDIT.__srcId = id;
+  go('editor');
+}
+function pushHistory(r, note){
+  r._history = r._history || [];
+  r._history.unshift({ts: new Date().toISOString(), who: MODE==='live' ? 'owner (live)' : 'owner (demo)', note: note||'Saved', snapshot: JSON.parse(JSON.stringify({...r, _history: undefined}))});
+  r._history = r._history.slice(0,20);
+}
+function multiChips(current, all, fn){
+  return `<div style="display:flex;flex-wrap:wrap;gap:7px">${all.map(v=>
+    `<button type="button" class="chip ${current.includes(v)?'ok':''}" onclick="${fn}('${v.replace(/'/g,"\\'")}')"
+      style="border:1.5px solid ${current.includes(v)?'var(--basil)':'var(--outline)'};background:${current.includes(v)?'rgba(47,125,79,.12)':'var(--surface)'};cursor:pointer">${current.includes(v)?'✓ ':''}${v}</button>`).join('')}</div>`;
+}
+function toggleIn(arr, v){ const i=arr.indexOf(v); i>=0?arr.splice(i,1):arr.push(v); }
+
+function renderEditor(){
+  const r = EDIT;
+  const ingRow = (gi, i) => {
+    const ing = i;
+    return `<div class="ingrow">
+      <div class="autowrap"><input type="text" placeholder="Ingredient" value="${esc(DB.mi[ing.id]?.n || '')}" data-g="${gi}" data-i="${ing.__i}"
+        oninput="ingAuto(this,${gi},${ing.__i})" onchange="ingCommit(this,${gi},${ing.__i})" autocomplete="off">
+        <div class="autodrop" id="ad-${gi}-${ing.__i}"></div></div>
+      <input class="amt" type="number" step="any" placeholder="Amt" value="${ing.a ?? ''}" oninput="EDIT.groups[${gi}].ing[${ing.__i}].a=this.value===''?null:+this.value">
+      <select onchange="EDIT.groups[${gi}].ing[${ing.__i}].u=this.value">
+        ${UNITS.map(u=>`<option value="${u}" ${ing.u===u?'selected':''}>${u||'count'}</option>`).join('')}
+      </select>
+      <input type="text" placeholder="Note (minced, diced…)" value="${esc(ing.n||'')}" oninput="EDIT.groups[${gi}].ing[${ing.__i}].n=this.value">
+      <div class="fl">
+        <button title="Optional" class="${ing.opt?'on':''}" onclick="toggleFlag(${gi},${ing.__i},'opt')">O</button>
+        <button title="To taste" class="${ing.to?'on':''}" onclick="toggleFlag(${gi},${ing.__i},'to')">T</button>
+        <button title="Whole only" class="${ing.w?'on':''}" onclick="toggleFlag(${gi},${ing.__i},'w')">W</button>
+        <button title="Remove" style="color:var(--error)" onclick="rmIng(${gi},${ing.__i})"><span class="msr" style="font-size:16px">close</span></button>
+      </div>
+    </div>`;
+  };
+  const groupsHTML = r.groups.map((g,gi)=>{
+    const rows = g.ing.map((i,ii)=>ingRow(gi, {...i, __i:ii})).join('');
+    return `<div class="grouph">
+        <input type="text" placeholder="Group title (optional — e.g. For the sauce)" value="${esc(g.t||'')}"
+          oninput="EDIT.groups[${gi}].t=this.value" style="font-family:'Poppins'">
+        <button class="btn btn-secondary btn-sm" onclick="addIng(${gi})"><span class="msr" style="font-size:15px">add</span>Add</button>
+      </div>${rows}`;
+  }).join('');
+
+  $('#view').innerHTML = `
+  <div class="toolbar">
+    <button class="btn btn-ghost btn-sm" onclick="go('recipes')"><span class="msr" style="font-size:16px">arrow_back</span>Back</button>
+    <div class="grow" style="font-family:'Poppins';font-size:15px;font-weight:600">${r.title ? esc(r.title) : 'New recipe'} ${statusChip(r.status)}</div>
+    <button class="btn btn-secondary" onclick="saveRecipe(false)">Save draft</button>
+    <button class="btn btn-primary" onclick="saveRecipe(true)">Save & publish</button>
+  </div>
+  <div id="edAlerts"></div>
+  <div class="edgrid">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card edsec">
+        <h4><span class="msr">info</span>Basics</h4>
+        <label>Title</label><input type="text" value="${esc(r.title)}" oninput="EDIT.title=this.value" onblur="if(!EDIT.__srcId) EDIT.id=slugify(this.value)||EDIT.id">
+        <div class="row" style="margin-top:10px">
+          <div class="grow"><label>Recipe id / link slug ${r.id?`(goodtastydaily.app/recipe/${esc(r.id)})`:''}</label>
+            <input type="text" value="${esc(r.id)}" oninput="EDIT.id=slugify(this.value)"></div>
+        </div>
+        <label style="margin-top:10px">Short description (max 200)</label>
+        <textarea rows="2" oninput="EDIT.desc=this.value">${esc(r.desc)}</textarea>
+        <div class="row" style="margin-top:10px">
+          <div><label>Prep (min)</label><input type="number" value="${r.prep}" oninput="EDIT.prep=+this.value"></div>
+          <div><label>Cook (min)</label><input type="number" value="${r.cook}" oninput="EDIT.cook=+this.value"></div>
+          <div><label>Total (min)</label><input type="number" value="${r.total}" oninput="EDIT.total=+this.value"></div>
+          <div><label>Servings</label><input type="number" value="${r.serves}" oninput="EDIT.serves=+this.value"></div>
+          <div><label>Difficulty</label><select onchange="EDIT.diff=this.value">
+            ${['Easy','Medium'].map(d=>`<option ${r.diff===d?'selected':''}>${d}</option>`).join('')}</select></div>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <div class="grow"><label>Cuisine</label><input type="text" value="${esc(r.cuisine||'')}" oninput="EDIT.cuisine=this.value"></div>
+          <div style="width:160px"><label>Status</label><select onchange="EDIT.status=this.value">
+            ${['draft','published','hidden'].map(s=>`<option value="${s}" ${r.status===s?'selected':''}>${s}</option>`).join('')}</select></div>
+        </div>
+      </div>
+
+      <div class="card edsec">
+        <h4><span class="msr">category</span>Categories</h4>
+        <label>Meal types</label>${multiChips(r.meals, MEALTYPES, 'toggleMeal')}
+        <label style="margin-top:12px">Cooking methods</label>${multiChips(r.methods||[], METHODS, 'toggleMethod')}
+        <label style="margin-top:12px">Diets</label>${multiChips(r.diets||[], DIETS, 'toggleDiet')}
+        <label style="margin-top:12px">Collections (Home rows)</label>${multiChips(r.collections||[], DB.collections.map(c=>c.name), 'toggleColl')}
+      </div>
+
+      <div class="card edsec">
+        <h4><span class="msr">grocery</span>Ingredients (structured — required for matching and scaling)
+          <button class="btn btn-secondary btn-sm" style="margin-left:auto" onclick="addGroup()"><span class="msr" style="font-size:15px">add</span>Add group</button></h4>
+        ${groupsHTML}
+      </div>
+
+      <div class="card edsec">
+        <h4><span class="msr">format_list_numbered</span>Steps
+          <button class="btn btn-secondary btn-sm" style="margin-left:auto" onclick="addStep()"><span class="msr" style="font-size:15px">add</span>Add step</button></h4>
+        ${r.steps.map((s,si)=>`<div class="steprow"><div class="n">${si+1}</div>
+          <div class="grow"><textarea rows="2" placeholder="Keep it short. Meat, poultry and fish need safe temperatures (e.g. chicken to 165°F)." oninput="EDIT.steps[${si}].t=this.value">${esc(s.t)}</textarea></div>
+          <div style="width:92px"><input type="number" placeholder="Timer s" value="${s.time??''}" oninput="EDIT.steps[${si}].time=this.value===''?undefined:+this.value"></div>
+          <button class="btn btn-danger btn-sm" style="height:31px;margin-top:3px" onclick="rmStep(${si})"><span class="msr" style="font-size:15px">close</span></button>
+        </div>`).join('')}
+      </div>
+
+      <div class="card edsec">
+        <h4><span class="msr">tips_and_updates</span>Tips (optional)</h4>
+        <textarea rows="3" oninput="EDIT.tips=this.value" placeholder="Storage, swaps, make-ahead…">${esc(r.tips||'')}</textarea>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card edsec">
+        <h4><span class="msr">image</span>Photo</h4>
+        <div class="imgbox" id="imgbox">
+          ${r.img && r.img_data ? `<img src="${r.img_data}">` :
+            `<span class="msr" style="font-size:34px;color:var(--outline)">add_photo_alternate</span>
+             <div style="font-size:12px;color:var(--text2);margin-top:6px">No photo yet</div>`}
+          <div class="sizes">${r.img ? 'Set — 3 sizes generated automatically on upload (thumb 400px, card 800px, full 1200px, WebP).' : 'Upload original; the panel generates the three sizes.'}</div>
+          <button class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="$('#imgInput').click()">Upload photo</button>
+          <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="uploadImage(this)">
+        </div>
+      </div>
+      <div class="card edsec">
+        <h4><span class="msr">local_fire_department</span>Nutrition per serving (estimates)</h4>
+        <div class="row">
+          <div class="grow"><label>Calories</label><input type="number" value="${r.nutrition?.cal??0}" oninput="EDIT.nutrition.cal=+this.value"></div>
+          <div class="grow"><label>Protein g</label><input type="number" value="${r.nutrition?.p??0}" oninput="EDIT.nutrition.p=+this.value"></div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <div class="grow"><label>Carbs g</label><input type="number" value="${r.nutrition?.c??0}" oninput="EDIT.nutrition.c=+this.value"></div>
+          <div class="grow"><label>Fat g</label><input type="number" value="${r.nutrition?.f??0}" oninput="EDIT.nutrition.f=+this.value"></div>
+        </div>
+      </div>
+      <div class="card edsec">
+        <h4><span class="msr">warning</span>Allergens (auto-calculated)</h4>
+        <div style="font-size:13px;line-height:1.6">
+          ${allergensOf(r).length ? allergensOf(r).map(a=>`<span class="chip err">${a}</span>`).join(' ') : '<span style="color:var(--text2)">None of the 9 major allergens detected.</span>'}
+          <div style="font-size:11.5px;color:var(--text2);margin-top:8px">Calculated from the master ingredient list. To change, edit the ingredient itself (Master ingredients page).</div>
+        </div>
+      </div>
+      <div class="card edsec">
+        <h4><span class="msr">history</span>Change history</h4>
+        <div class="hist">${(r._history||[]).map((h,i)=>`<div class="hi">
+          <b>${esc(h.note)}</b> <span class="meta">— ${esc(h.who)}, ${h.ts.slice(0,16).replace('T',' ')}</span>
+          <button class="btn btn-ghost btn-sm" onclick="restoreVersion(${i})">Restore</button></div>`).join('') ||
+          '<div style="font-size:12.5px;color:var(--text2)">No changes yet.</div>'}</div>
+      </div>
+      <button class="btn btn-danger" onclick="delRecipe()"><span class="msr" style="font-size:16px">delete</span>Delete recipe</button>
+    </div>
+  </div>`;
+}
+function toggleMeal(v){ toggleIn(EDIT.meals, v); renderEditor(); }
+function toggleMethod(v){ toggleIn(EDIT.methods, v); renderEditor(); }
+function toggleDiet(v){ toggleIn(EDIT.diets, v); renderEditor(); }
+function toggleColl(name){
+  const c = DB.collections.find(x=>x.name===name); if(!c) return;
+  toggleIn(EDIT.collections, c.id); renderEditor();
+}
+function addGroup(){ EDIT.groups.push({t:'', ing:[{id:'',a:'',u:'',n:''}]}); renderEditor(); }
+function addIng(gi){ EDIT.groups[gi].ing.push({id:'',a:'',u:'',n:''}); renderEditor(); }
+function rmIng(gi,ii){ EDIT.groups[gi].ing.splice(ii,1); renderEditor(); }
+function toggleFlag(gi,ii,f){ EDIT.groups[gi].ing[ii][f] = EDIT.groups[gi].ing[ii][f] ? 0 : 1; renderEditor(); }
+function addStep(){ EDIT.steps.push({t:'',time:'',ing:[]}); renderEditor(); }
+function rmStep(si){ EDIT.steps.splice(si,1); renderEditor(); }
+
+/* ingredient autocomplete */
+function ingAuto(input, gi, ii){
+  const q = input.value.toLowerCase().trim();
+  const drop = $(`#ad-${gi}-${ii}`);
+  if(!q){ drop.classList.remove('show'); return; }
+  const hits = Object.keys(DB.mi).filter(id=>{
+    const m = DB.mi[id];
+    return (m.n+' '+(m.s||[]).join(' ')).toLowerCase().includes(q);
+  }).slice(0,8);
+  drop.innerHTML = hits.length ? hits.map(id=>`<div onmousedown="pickIng('${id}',${gi},${ii})">
+    ${esc(DB.mi[id].n)}<span class="gid">${DB.mi[id].g}${DB.mi[id].b?' · basic':''}</span></div>`).join('')
+    : `<div style="color:var(--text2)">No match — <b onmousedown="quickAddMi('${q.replace(/'/g,'')}')" style="color:var(--primary);cursor:pointer">create “${esc(q)}”</b></div>`;
+  drop.classList.add('show');
+}
+function ingCommit(input, gi, ii){ $(`#ad-${gi}-${ii}`).classList.remove('show'); }
+function pickIng(id, gi, ii){
+  EDIT.groups[gi].ing[ii].id = id; renderEditor();
+}
+function quickAddMi(name){
+  const id = slugify(name).replace(/-/g,'_');
+  DB.mi[id] = {n: name.charAt(0).toUpperCase()+name.slice(1), g:'Pantry'};
+  persist(); putDoc('master_ingredients', id, {id, ...DB.mi[id]});
+  toast(`“${name}” added to master ingredients`,'inventory');
+  renderEditor();
+}
+
+/* image upload — resize to 3 WebP sizes in the browser (demo mode keeps
+   the card size inline; live mode also uploads originals for the
+   Cloud Function to process). */
+function uploadImage(input){
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const sizes = {thumb:400, card:800, full:1200};
+      const outs = {};
+      for(const [name,w] of Object.entries(sizes)){
+        const c = document.createElement('canvas');
+        const sc = Math.min(1, w/img.width);
+        c.width = Math.round(img.width*sc); c.height = Math.round(img.height*sc);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        outs[name] = c.toDataURL('image/webp', .8);
+      }
+      EDIT.img = true; EDIT.img_data = outs.card;
+      EDIT._pending_upload = outs;
+      if(MODE === 'live' && FB) uploadToStorage(EDIT.id, outs);
+      toast('Photo ready — 3 WebP sizes generated','image');
+      renderEditor();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+async function uploadToStorage(recipeId, outs){
+  try{
+    const {ref, uploadString} = FB.storageMod;
+    for(const [name, data] of Object.entries(outs)){
+      const r = ref(FB.storageObj, `recipes/${recipeId}/${name}.webp`);
+      await uploadString(r, data.split(',')[1], 'base64', {contentType:'image/webp'});
+    }
+    toast('Images uploaded to Storage','cloud_done');
+  }catch(err){ toast('Storage upload failed: '+err.code, 'error'); }
+}
+
+/* save */
+async function saveRecipe(publish){
+  if(!EDIT.id){ EDIT.id = slugify(EDIT.title||''); }
+  if(!EDIT.id){ toast('Give the recipe a title first','error'); return; }
+  const candidate = JSON.parse(JSON.stringify(EDIT));
+  candidate.steps = candidate.steps.filter(s=>(s.t||'').trim());
+  candidate.groups = candidate.groups.map(g=>({...g, ing: g.ing.filter(i=>i.id)})).filter(g=>g.ing.length);
+  if(publish) candidate.status = 'published';
+  const {errors, warnings} = validateRecipe(candidate);
+  const alerts = $('#edAlerts');
+  if(errors.length){
+    alerts.innerHTML = `<div class="errbox"><b><span class="msr" style="font-size:16px">error</span>Please fix before saving:</b>
+      ${errors.map(e=>'• '+esc(e)).join('<br>')}</div>`;
+    if(alerts.scrollIntoView) alerts.scrollIntoView({behavior:'smooth'}); return;
+  }
+  if(publish && warnings.length){
+    if(!confirm('Warnings before publishing:\n\n- '+warnings.join('\n- ')+'\n\nPublish anyway?')) return;
+  }
+  alerts.innerHTML = warnings.length ? `<div class="warnbox"><b><span class="msr" style="font-size:16px">warning</span>Noted (non-blocking):</b>
+    ${warnings.map(w=>'• '+esc(w)).join('<br>')}</div>` : '';
+
+  const existing = recipeById(candidate.id);
+  if(existing && EDIT.__srcId !== candidate.id){ toast('A recipe with this id already exists','error'); return; }
+
+  if(existing){
+    pushHistory(existing, 'Edited');
+    Object.assign(existing, candidate, {_history: existing._history});
+    existing.updated_at = new Date().toISOString();
+  } else {
+    candidate.updated_at = new Date().toISOString();
+    candidate._history = [];
+    DB.recipes.push(candidate);
+  }
+  persist(); await putDoc('recipes', candidate.id, recipeById(candidate.id));
+  toast(publish ? 'Published' : 'Saved as draft', publish?'publish':'check_circle');
+  openEditor(candidate.id);
+}
+function delRecipe(){
+  if(!EDIT.id || !confirm('Delete "'+(EDIT.title||'this recipe')+'"? This cannot be undone.')) return;
+  const i = DB.recipes.findIndex(r=>r.id===EDIT.id);
+  if(i>=0){ const [gone] = DB.recipes.splice(i,1); persist(); delDoc('recipes', gone.id); }
+  toast('Recipe deleted','delete');
+  go('recipes');
+}
+function restoreVersion(hi){
+  const h = EDIT._history[hi];
+  if(!h || !confirm('Restore the version from '+h.ts.slice(0,16).replace('T',' ')+'? Current unsaved edits will be replaced.')) return;
+  const hist = EDIT._history;
+  EDIT = {...h.snapshot, _history: hist};
+  toast('Version restored — remember to save','history');
+  renderEditor();
+}
+</script>
+<script>
+/* =====================================================================
+   VIEWS: ingredients, collections, picks, reports
+   ===================================================================== */
+let miFilter = '';
+function renderIngredients(){
+  const ids = Object.keys(DB.mi).filter(id=>{
+    if(!miFilter) return true;
+    const q = miFilter.toLowerCase();
+    return DB.mi[id].n.toLowerCase().includes(q) || (DB.mi[id].s||[]).join(' ').toLowerCase().includes(q);
+  }).sort((a,b)=>DB.mi[a].g.localeCompare(DB.mi[b].g) || DB.mi[a].n.localeCompare(DB.mi[b].n));
+  $('#view').innerHTML = `
+  <div class="toolbar">
+    <div class="grow searchwrap"><span class="msr">search</span>
+      <input type="text" placeholder="Search ingredients and synonyms" value="${esc(miFilter)}" oninput="miFilter=this.value;renderIngredients()"></div>
+    <button class="btn btn-primary" onclick="openMiModal()"><span class="msr" style="font-size:16px">add</span>New ingredient</button>
+  </div>
+  <div class="card" style="overflow-x:auto"><table class="tbl"><thead><tr>
+    <th>Name</th><th>Group</th><th>Allergens</th><th>Basic</th><th>Parent</th><th>Synonyms</th><th>Used in</th><th></th>
+  </tr></thead><tbody>
+  ${ids.map(id=>{const m=DB.mi[id]; return `<tr>
+    <td><b style="font-weight:600">${esc(m.n)}</b><div style="color:var(--text2);font-size:11px">${id}</div></td>
+    <td>${m.g}</td>
+    <td>${(m.a||[]).map(a=>`<span class="chip err">${a}</span>`).join(' ')||'<span style="color:var(--text2)">—</span>'}</td>
+    <td>${m.b?'<span class="chip ok">basic</span>':''}</td>
+    <td style="font-size:12px">${m.p?esc(DB.mi[m.p]?.n||m.p):''}</td>
+    <td style="font-size:12px;color:var(--text2)">${esc((m.s||[]).join(', '))}</td>
+    <td>${usedInCount(id)} recipe${usedInCount(id)===1?'':'s'}</td>
+    <td style="white-space:nowrap">
+      <button class="btn btn-secondary btn-sm" onclick="openMiModal('${id}')">Edit</button>
+      <button class="btn btn-danger btn-sm" onclick="delMi('${id}')">Delete</button>
+    </td></tr>`;}).join('')}
+  </tbody></table></div>`;
+}
+function openMiModal(id){
+  const m = id ? DB.mi[id] : null;
+  $('#miEditId').value = id || '';
+  $('#miName').value = m ? m.n : '';
+  $('#miGroup').innerHTML = MIGROUPS.map(g=>`<option ${m&&m.g===g?'selected':''}>${g}</option>`).join('');
+  $('#miParent').innerHTML = `<option value="">—</option>` + Object.keys(DB.mi)
+    .filter(k=>k!==id).map(k=>`<option value="${k}" ${m&&m.p===k?'selected':''}>${esc(DB.mi[k].n)}</option>`).join('');
+  $('#miAllergens').innerHTML = ALLERGENS.map(a=>`<label class="checkline" style="padding:5px 0">
+    <input type="checkbox" value="${a}" ${m&&(m.a||[]).includes(a)?'checked':''}>${a}</label>`).join('');
+  $('#miSyn').value = m ? (m.s||[]).join(', ') : '';
+  $('#miBasic').checked = m ? !!m.b : false;
+  $('#miScrim').classList.add('show');
+}
+function closeMiModal(){ $('#miScrim').classList.remove('show'); }
+function saveMiFromModal(){
+  const id = $('#miEditId').value || slugify($('#miName').value).replace(/-/g,'_');
+  const name = $('#miName').value.trim();
+  if(!name){ toast('Name is required','error'); return; }
+  if(!id){ toast('Name produces no valid id','error'); return; }
+  DB.mi[id] = {
+    id, n: name, g: $('#miGroup').value,
+    a: $$('#miAllergens input:checked').map(x=>x.value),
+    b: $('#miBasic').checked || undefined,
+    p: $('#miParent').value || undefined,
+    s: $('#miSyn').value.split(',').map(x=>x.trim()).filter(Boolean),
+  };
+  persist(); putDoc('master_ingredients', id, DB.mi[id]);
+  closeMiModal(); toast('Ingredient saved','inventory');
+  renderIngredients();
+}
+function delMi(id){
+  const n = usedInCount(id);
+  if(n){ toast(`Used in ${n} recipe${n>1?'s':''} — remove it from those first`,'error'); return; }
+  if(!confirm('Delete "'+DB.mi[id].n+'"?')) return;
+  delete DB.mi[id]; persist(); delDoc('master_ingredients', id);
+  renderIngredients(); toast('Ingredient deleted','delete');
+}
+
+function renderCollections(){
+  const arr = [...DB.collections].sort((a,b)=>a.order-b.order);
+  $('#view').innerHTML = `
+  <div class="toolbar"><div class="grow" style="font-size:12.5px;color:var(--text2)">
+    These become the Home screen rows in the app. Order and visibility apply immediately — no app update needed.</div>
+    <button class="btn btn-primary" onclick="newCollection()"><span class="msr" style="font-size:16px">add</span>New collection</button></div>
+  <div class="colgrid">
+  ${arr.map((c,i)=>`<div class="card colcard">
+    <h4><span style="color:var(--tomato)" class="msr">collections_bookmark</span>
+      <input type="text" value="${esc(c.name)}" style="font-family:'Poppins';font-weight:600" oninput="DB.collections.find(x=>x.id==='${c.id}').name=this.value">
+      <span class="arrows" style="margin-left:auto">
+        <button title="Move up" onclick="moveColl('${c.id}',-1)"><span class="msr" style="font-size:16px">keyboard_arrow_up</span></button>
+        <button title="Move down" onclick="moveColl('${c.id}',1)"><span class="msr" style="font-size:16px">keyboard_arrow_down</span></button>
+      </span></h4>
+    <input type="text" value="${esc(c.desc||'')}" placeholder="Short description" oninput="DB.collections.find(x=>x.id==='${c.id}').desc=this.value">
+    <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
+      <label class="checkline" style="padding:0"><input type="checkbox" ${c.show_on_home?'checked':''}
+        onchange="DB.collections.find(x=>x.id==='${c.id}').show_on_home=this.checked">Show on Home</label>
+      <span class="chip ok" style="margin-left:auto">${DB.recipes.filter(r=>(r.collections||[]).includes(c.id)).length} recipes</span>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-primary btn-sm" onclick="saveColl('${c.id}')">Save</button>
+      <button class="btn btn-danger btn-sm" onclick="delColl('${c.id}')">Delete</button>
+    </div>
+  </div>`).join('')}
+  </div>`;
+}
+function newCollection(){
+  const id = 'collection-' + Date.now();
+  DB.collections.push({id, name:'New collection', desc:'', order: DB.collections.length+1, show_on_home:true});
+  persist(); putDoc('collections', id, DB.collections.find(c=>c.id===id));
+  renderCollections();
+}
+function moveColl(id, d){
+  const arr = [...DB.collections].sort((a,b)=>a.order-b.order);
+  const i = arr.findIndex(c=>c.id===id), j = i+d;
+  if(j<0 || j>=arr.length) return;
+  const tmp = arr[i].order; arr[i].order = arr[j].order; arr[j].order = tmp;
+  persist(); arr.forEach(c=>putDoc('collections', c.id, c));
+  renderCollections();
+}
+function saveColl(id){
+  const c = DB.collections.find(x=>x.id===id);
+  if(!c.name.trim()){ toast('Name is required','error'); return; }
+  persist(); putDoc('collections', id, c);
+  toast('Collection saved','check_circle');
+}
+function delColl(id){
+  const n = DB.recipes.filter(r=>(r.collections||[]).includes(id)).length;
+  if(n){ toast(n+' recipes are in this collection — remove them first','error'); return; }
+  if(!confirm('Delete this collection?')) return;
+  DB.collections = DB.collections.filter(c=>c.id!==id);
+  persist(); delDoc('collections', id); renderCollections();
+}
+
+function renderPicks(){
+  const days = Array.from({length:14},(_,i)=>{
+    const d = new Date(); d.setDate(d.getDate()+i);
+    return d.toISOString().slice(0,10);
+  });
+  const pub = DB.recipes.filter(r=>r.status==='published').sort((a,b)=>a.title.localeCompare(b.title));
+  $('#view').innerHTML = `
+  <div class="toolbar"><div class="grow" style="font-size:12.5px;color:var(--text2)">
+    The app sends this recipe at ~4 pm user time, and features it as "Tonight's pick". Empty days fall back to an automatic pick (Cloud Function).</div></div>
+  <div class="card">
+  ${days.map(date=>{
+    const pick = DB.picks.find(p=>p.date===date);
+    const isToday = date === todayISO();
+    return `<div class="pickday ${isToday?'today':''}">
+      <div class="dte"><b>${new Date(date+'T12:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</b>
+        <span>${isToday?'today':date}</span></div>
+      <select style="flex:1" onchange="setPick('${date}',this.value)">
+        <option value="">— automatic pick —</option>
+        ${pub.map(r=>`<option value="${r.id}" ${pick&&pick.recipe_id===r.id?'selected':''}>${esc(r.title)}</option>`).join('')}
+      </select>
+      ${pick ? `<span class="chip ok">set${pick.created_by==='auto'?' (auto)':''}</span>` : '<span class="chip draft">auto</span>'}
+    </div>`;}).join('')}
+  </div>`;
+}
+async function setPick(date, recipeId){
+  DB.picks = DB.picks.filter(p=>p.date!==date);
+  if(recipeId){
+    const p = {date, recipe_id: recipeId, created_by:'owner', created_at:new Date().toISOString()};
+    DB.picks.push(p); await putDoc('daily_picks', date, p);
+  } else {
+    await delDoc('daily_picks', date);
+  }
+  toast(recipeId ? "Pick saved for "+date : 'Back to automatic pick', 'event_available');
+  renderPicks();
+}
+
+function renderReports(){
+  const arr = [...DB.reports].sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''));
+  $('#view').innerHTML = `
+  <div class="toolbar"><div class="grow" style="font-size:12.5px;color:var(--text2)">
+    Reports arrive from the "Report a problem" button in the app — recipe ID, app version and phone model. No personal data unless the user leaves an email.</div></div>
+  <div class="card" style="overflow-x:auto"><table class="tbl"><thead><tr>
+    <th>Date</th><th>Recipe</th><th>Type</th><th>Text</th><th>Email</th><th>Device</th><th>Status</th><th></th>
+  </tr></thead><tbody>
+  ${arr.map(rep=>{const r = recipeById(rep.recipe_id); return `<tr class="repline">
+    <td style="white-space:nowrap;font-size:12px">${(rep.created_at||'').slice(0,10)}</td>
+    <td>${r?esc(r.title):'<span style="color:var(--text2)">'+esc(rep.recipe_id)+'</span>'}</td>
+    <td><span class="chip ${rep.type==='Allergen wrong'?'err':'draft'}">${esc(rep.type)}</span></td>
+    <td class="txt" style="font-size:12.5px;max-width:360px">${esc(rep.text||'—')}</td>
+    <td style="font-size:12px">${esc(rep.email||'—')}</td>
+    <td style="font-size:11.5px;color:var(--text2)">${esc(rep.device||'')} ${esc(rep.app_version?'· v'+rep.app_version:'')}</td>
+    <td><span class="chip ${rep.status==='new'?'err':rep.status==='fixed'?'ok':'hidden'}">${rep.status}</span></td>
+    <td class="st-actions">
+      ${r?`<button class="btn btn-secondary btn-sm" onclick="openEditor('${r.id}')">Edit recipe</button>`:''}
+      ${rep.status!=='fixed'?`<button class="btn btn-primary btn-sm" onclick="setRep('${rep.id}','fixed')">Mark fixed</button>`:''}
+      ${rep.status!=='ignored'?`<button class="btn btn-ghost btn-sm" onclick="setRep('${rep.id}','ignored')">Ignore</button>`:''}
+      ${rep.status!=='new'?`<button class="btn btn-ghost btn-sm" onclick="setRep('${rep.id}','new')">Reopen</button>`:''}
+    </td></tr>`;}).join('')}
+  </tbody></table>
+  ${arr.length ? '' : `<div class="empty"><span class="msr">task_alt</span><h4>No problem reports. Nice.</h4></div>`}</div>`;
+}
+async function setRep(id, status){
+  const rep = DB.reports.find(r=>r.id===id);
+  rep.status = status;
+  await putDoc('problem_reports', id, rep);
+  renderReports(); refreshBadges();
+  toast(status==='fixed'?'Marked fixed — nice catch':'Report updated','flag');
+}
+</script>
+<script>
+/* =====================================================================
+   IMPORT / EXPORT — CSV + JSON with row-level error report (PRD 9.1)
+   ===================================================================== */
+const CSV_COLS = ['id','title','description','prep_time','cook_time','total_time','servings','difficulty','meal_types','cuisine','cooking_methods','diets','collections','ingredients_json','steps_json','tips','calories','protein','carbs','fat','status'];
+function parseCSV(text){
+  const rows = []; let row = [], cur = '', q = false;
+  for(let i=0;i<text.length;i++){
+    const ch = text[i];
+    if(q){
+      if(ch === '"'){ if(text[i+1] === '"'){ cur += '"'; i++; } else q = false; }
+      else cur += ch;
+    } else {
+      if(ch === '"') q = true;
+      else if(ch === ',') { row.push(cur); cur = ''; }
+      else if(ch === '\n' || ch === '\r'){ if(ch === '\r' && text[i+1] === '\n') i++; row.push(cur); cur=''; if(row.some(x=>x!=='')) rows.push(row); row = []; }
+      else cur += ch;
+    }
+  }
+  row.push(cur); if(row.some(x=>x!=='')) rows.push(row);
+  if(!rows.length) return [];
+  const head = rows[0].map(h=>h.trim());
+  return rows.slice(1).map(r=>{
+    const o = {}; head.forEach((h,i)=> o[h] = (r[i]||'').trim()); return o;
+  });
+}
+function csvToRecipe(o){
+  const list = s => (s||'').split('|').map(x=>x.trim()).filter(Boolean);
+  const colls = list(o.collections).map(c=>{
+    const byName = DB.collections.find(x=>x.name.toLowerCase()===c.toLowerCase());
+    return byName ? byName.id : c;
+  });
+  let groups = [{t:'',ing:[]}], steps = [], nutrition = {cal:0,p:0,c:0,f:0};
+  try{ const ing = JSON.parse(o.ingredients_json||'[]');
+    if(ing.length && ing[0].items) groups = ing;             // optional [{t, items}]
+    else if(ing.length) groups = [{t:'', ing}];
+  }catch(e){ throw new Error('ingredients_json is not valid JSON'); }
+  try{ steps = JSON.parse(o.steps_json||'[]').map(s=>({t:s.t, time:s.time, ing:s.ing||[]})); }
+  catch(e){ throw new Error('steps_json is not valid JSON'); }
+  const cal = +o.calories||0;
+  return {
+    id: o.id || slugify(o.title||''), title: o.title||'', desc: o.description||'',
+    prep: +o.prep_time||0, cook: +o.cook_time||0, total: +o.total_time||0,
+    serves: +o.servings||4, diff: o.difficulty||'Easy', meals: list(o.meal_types),
+    cuisine: o.cuisine||'', methods: list(o.cooking_methods), diets: list(o.diets),
+    collections: colls, groups, steps, tips: o.tips||'',
+    nutrition: {cal, p:+o.protein||0, c:+o.carbs||0, f:+o.fat||0},
+    status: ['draft','published','hidden'].includes(o.status) ? o.status : 'draft',
+    h: 24, created: todayISO(), updated_at: new Date().toISOString(),
+    views: 0, saves: 0, reports_count: 0, img: false, _history: [],
+  };
+}
+function csvTemplate(){
+  const example = {
+    id:'cheesy-bean-toast', title:'Cheesy Bean Toast', description:'Crisp toast with warm cheesy beans. 10 minutes.',
+    prep_time:3, cook_time:7, total_time:10, servings:2, difficulty:'Easy', meal_types:'Breakfast|Lunch',
+    cuisine:'American', cooking_methods:'Stovetop', diets:'Vegetarian', collections:'Under 10 Ingredients',
+    ingredients_json: JSON.stringify([{id:'bread',a:2,u:'slice'},{id:'cheddar',a:0.5,u:'cup',n:'shredded'},{id:'butter',a:1,u:'tbsp',opt:1}]),
+    steps_json: JSON.stringify([{t:'Toast the bread.',ing:[]},{t:'Top with beans and cheese. Melt 3 minutes.',time:180,ing:[]}]),
+    tips:'', calories:340, protein:16, carbs:38, fat:12, status:'draft',
+  };
+  return CSV_COLS.join(',') + '\n' + CSV_COLS.map(c=>{
+    const v = String(example[c] ?? '');
+    return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v;
+  }).join(',');
+}
+function download(filename, content, type){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], {type: type||'text/plain'}));
+  a.download = filename; a.click(); URL.revokeObjectURL(a.href);
+}
+let importReport = null;
+function renderImport(){
+  $('#view').innerHTML = `
+  <div class="toolbar"><div class="grow" style="font-size:12.5px;color:var(--text2)">
+    The owner provides content in this format (template below). Rows are validated one by one — you see exactly which row failed and why, and only clean rows import.</div></div>
+  <div class="card edsec" style="margin-bottom:16px">
+    <h4><span class="msr">file_download</span>Templates & backups</h4>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-secondary" onclick="download('gtd-recipe-template.csv', csvTemplate(), 'text/csv')"><span class="msr" style="font-size:16px">table_view</span>CSV template</button>
+      <button class="btn btn-secondary" onclick="download('gtd-recipes.json', exportRecipes(), 'application/json')"><span class="msr" style="font-size:16px">menu_book</span>Export recipes (JSON)</button>
+      <button class="btn btn-secondary" onclick="download('gtd-ingredients.json', exportMI(), 'application/json')"><span class="msr" style="font-size:16px">inventory</span>Export ingredients (JSON)</button>
+      <button class="btn btn-secondary" onclick="exportAll()"><span class="msr" style="font-size:16px">backup</span>Full backup</button>
+    </div>
+  </div>
+
+  <div class="card edsec">
+    <h4><span class="msr">cloud_upload</span>Seed a fresh Firebase project</h4>
+    <p style="font-size:13px;color:var(--stone);margin:6px 0 10px">Writes the full starter set to the connected Firebase project: 70 master ingredients, 7 collections, 20 recipes and 3 daily picks. Only needed once, right after creating the project. Documents with the same ids are overwritten.</p>
+    <button class="btn btn-primary" onclick="seedLive()"><span class="msr" style="font-size:16px">rocket_launch</span>Push seed data to Firebase</button>
+  </div>
+  <div class="card edsec">
+    <h4><span class="msr">file_upload</span>Import recipes</h4>
+    <label>Format</label>
+    <select id="impFormat" style="max-width:220px">
+      <option value="json">JSON (paste or file)</option>
+      <option value="csv">CSV (paste or file)</option>
+    </select>
+    <label style="margin-top:10px">Paste ${'{...}'} JSON array or CSV text</label>
+    <textarea class="importbox" id="impText" placeholder='[{"id":"...", "title":"..."}]   — or CSV with the template columns'></textarea>
+    <div style="display:flex;gap:10px;margin-top:10px;align-items:center">
+      <input type="file" id="impFile" accept=".json,.csv,.txt" style="width:auto" onchange="impFilePick(this)">
+      <div class="grow"></div>
+      <button class="btn btn-secondary" onclick="runImportValidation()">Validate</button>
+      <button class="btn btn-primary" id="impGo" disabled onclick="commitImport()"></button>
+    </div>
+    <div id="impReport" style="margin-top:14px"></div>
+  </div>`;
+  if(importReport) renderImportReport();
+}
+function impFilePick(input){
+  const f = input.files[0]; if(!f) return;
+  const rd = new FileReader();
+  rd.onload = e => { $('#impText').value = e.target.result;
+    if(f.name.endsWith('.csv')) $('#impFormat').value = 'csv'; };
+  rd.readAsText(f);
+}
+function runImportValidation(){
+  const fmt = $('#impFormat').value;
+  const raw = $('#impText').value.trim();
+  if(!raw){ toast('Paste something first','error'); return; }
+  let items = [];
+  try{
+    if(fmt === 'json'){
+      const parsed = JSON.parse(raw);
+      items = (Array.isArray(parsed) ? parsed : (parsed.recipes || [parsed]));
+    } else {
+      items = parseCSV(raw).map(o=>{ try{ return csvToRecipe(o); }catch(e){ return {__err: e.message, title: o.title||'(untitled)'}; }});
+    }
+  }catch(e){ toast('Could not parse: '+e.message,'error'); return; }
+
+  importReport = items.map((r,idx)=>{
+    if(r.__err) return {i: idx+1, title: r.title, ok:false, errors:[r.__err]};
+    if(!r.id && r.title) r.id = slugify(r.title);
+    const exists = recipeById(r.id);
+    if(exists) r._update = true;
+    const v = validateRecipe(r);
+    return {i: idx+1, title: r.title || '(untitled)', ok: v.errors.length===0, errors: v.errors, warnings: v.warnings, update: exists, data: r};
+  });
+  renderImportReport();
+}
+function renderImportReport(){
+  const okN = importReport.filter(x=>x.ok).length;
+  const badN = importReport.length - okN;
+  const btn = $('#impGo');
+  btn.disabled = !okN; btn.textContent = 'Import '+okN+' valid item'+(okN===1?'':'s');
+  $('#impReport').innerHTML = `
+    <div style="font-size:13px;margin-bottom:8px">
+      <b class="ok" style="color:var(--basil)">${okN} valid</b> ·
+      <b style="color:var(--error)">${badN} with problems</b>
+      ${importReport.some(x=>x.update)?' · <span style="color:var(--gold)">validates as updates to existing recipes</span>':''}
+    </div>
+    ${importReport.map(x=>`<div class="report-item">
+      <b>Row ${x.i} — ${esc(x.title)}</b>
+      ${x.update?' <span class="chip draft">updates existing</span>':''}
+      ${x.ok?' <span class="ok">✓ will import</span>':' <span class="bad">✗ skipped</span>'}
+      ${x.errors&&x.errors.length?'<div style="color:var(--error);margin-top:3px">'+x.errors.map(e=>'• '+esc(e)).join('<br>')+'</div>':''}
+      ${x.warnings&&x.warnings.length?'<div style="color:#8A5A00;margin-top:3px">'+x.warnings.map(w=>'⚠ '+esc(w)).join('<br>')+'</div>':''}
+    </div>`).join('')}`;
+}
+async function seedLive(){
+  if(MODE !== 'live'){ toast('Switch to live mode first (Settings)','error'); return; }
+  const fresh = seedDB();
+  const n = Object.keys(fresh.mi).length + fresh.collections.length + fresh.recipes.length + fresh.picks.length;
+  const overwrite = DB.recipes.length > 0 || Object.keys(DB.mi).length > 0;
+  const msg = overwrite
+    ? 'Your Firebase project already has content. Seeding again will OVERWRITE documents with the same ids. Continue?'
+    : 'Push the starter set ('+n+' documents) to your Firebase project?';
+  if(!confirm(msg)) return;
+  try{
+    for(const id of Object.keys(fresh.mi)) await putDoc('master_ingredients', id, fresh.mi[id]);
+    for(const c of fresh.collections) await putDoc('collections', c.id, c);
+    for(const r of fresh.recipes){ const {_history, img_data, ...clean} = r; await putDoc('recipes', r.id, clean); }
+    for(const p of fresh.picks) await putDoc('daily_picks', p.date, p);
+    await loadDB(); refreshBadges(); go('dashboard');
+    toast('Seed data pushed to Firebase','cloud_done');
+  }catch(e){
+    toast('Seed failed: '+(e.code||e.message),'error');
+  }
+}
+async function commitImport(){
+  const valid = importReport.filter(x=>x.ok);
+  for(const item of valid){
+    const r = item.data;
+    const i = DB.recipes.findIndex(x=>x.id===r.id);
+    if(i >= 0){ pushHistory(DB.recipes[i], 'Updated via import'); Object.assign(DB.recipes[i], r, {_history: DB.recipes[i]._history}); }
+    else DB.recipes.push(r);
+    await putDoc('recipes', r.id, r);
+  }
+  persist(); refreshBadges();
+  toast(valid.length+' recipe'+(valid.length===1?'':'s')+' imported','upload_done');
+  importReport = null; go('recipes');
+}
+function exportRecipes(){
+  return JSON.stringify(DB.recipes.map(r=>{const {_history, img_data, ...clean} = r; return clean;}), null, 2);
+}
+function exportMI(){
+  return JSON.stringify(Object.keys(DB.mi).map(id=>({id, ...DB.mi[id]})), null, 2);
+}
+function exportAll(){
+  download('gtd-backup-'+todayISO()+'.json',
+    JSON.stringify({exported_at:new Date().toISOString(), recipes:JSON.parse(exportRecipes()),
+      master_ingredients:JSON.parse(exportMI()), collections:DB.collections, daily_picks:DB.picks}, null, 2),
+    'application/json');
+  toast('Backup downloaded','backup');
+}
+
+/* =====================================================================
+   LIVE MODE — Firebase web SDK (loaded on demand)
+   ===================================================================== */
+async function ensureLive(){
+  if(FB) return;
+  const cfgRaw = localStorage.getItem('gtd_fb_config');
+  if(!cfgRaw){ openSettings(); throw new Error('No Firebase config saved'); }
+  const cfg = JSON.parse(cfgRaw);
+  const V = 'https://www.gstatic.com/firebasejs/10.12.2/';
+  const [appMod, fsMod, authMod, stMod] = await Promise.all([
+    import(V+'firebase-app.js'), import(V+'firebase-firestore.js'),
+    import(V+'firebase-auth.js'), import(V+'firebase-storage.js')]);
+  const app = appMod.initializeApp(cfg);
+  FB = {
+    app, db: fsMod.getFirestore(app),
+    auth: authMod.getAuth(app),
+    storageObj: stMod.getStorage(app),
+    fs: fsMod, authMod, storageMod: stMod,
+  };
+  FB.auth.onAuthStateChanged(()=>updateModeChip());
+}
+async function setMode(m){
+  if(m === 'live'){
+    const cfgText = $('#fbConfig').value.trim();
+    if(!cfgText){ toast('Paste your Firebase config first','error'); return; }
+    try{ JSON.parse(cfgText); }catch(e){ toast('Config is not valid JSON','error'); return; }
+    localStorage.setItem('gtd_fb_config', cfgText);
+  }
+  MODE = m; localStorage.setItem('gtd_mode', m);
+  closeSettings();
+  try{
+    await loadDB(); refreshBadges(); go('dashboard');
+    toast(m==='live' ? 'Connected to live Firebase' : 'Using demo data (this browser)', 'cloud_done');
+  }catch(e){ toast('Could not load: '+e.message,'error'); }
+  updateModeChip();
+}
+function updateModeChip(){
+  const chip = $('#modeChip');
+  if(MODE === 'live'){
+    let pid = ''; try{ pid = JSON.parse(localStorage.getItem('gtd_fb_config')).projectId; }catch(e){}
+    chip.className = 'modechip live'; chip.textContent = 'LIVE: '+(pid||'firebase');
+  } else {
+    chip.className = 'modechip demo'; chip.textContent = 'DEMO DATA';
+  }
+}
+function openSettings(){
+  $('#fbConfig').value = localStorage.getItem('gtd_fb_config') || '';
+  $('#fbConfigWrap').style.display = '';
+  $('#settingsScrim').classList.add('show');
+}
+function closeSettings(){ $('#settingsScrim').classList.remove('show'); }
+function resetDemo(){
+  if(!confirm('Reset demo data to the original 20 sample recipes? Your edits in this browser will be lost.')) return;
+  localStorage.removeItem('gtd_demo_db');
+  loadDB(); refreshBadges(); go('dashboard');
+  toast('Demo data reset','restart_alt');
+}
+async function signInLive(){
+  try{
+    await ensureLive();
+    const {signInWithEmailAndPassword } = FB.authMod;
+    await signInWithEmailAndPassword(FB.auth, $('#authEmail').value, $('#authPass').value);
+    closeAuth(); toast('Signed in','lock_open');
+    await loadDB(); refreshBadges(); go('dashboard');
+  }catch(e){
+    toast('Sign-in failed: '+(e.code||e.message),'error');
+  }
+}
+function closeAuth(){ $('#authScrim').classList.remove('show'); }
+
+/* ---------- init ---------- */
+(async function init(){
+  updateModeChip();
+  try{ await loadDB(); }
+  catch(e){ DB = seedDB(); persist(); }
+  refreshBadges();
+  go('dashboard');
+  console.log('Good Tasty Daily admin panel — ' + DB.recipes.length + ' recipes, ' + Object.keys(DB.mi).length + ' ingredients, mode: ' + MODE);
+})();
+</script>
+</body>
+</html>
