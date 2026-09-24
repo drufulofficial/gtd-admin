@@ -214,6 +214,7 @@ table.tbl{width:100%;border-collapse:collapse;}
     <button class="navbtn" data-view="recipes" onclick="go('recipes')"><span class="msr">menu_book</span>Recipes<span class="cnt" id="draftCnt" style="display:none"></span></button>
     <button class="navbtn" data-view="ingredients" onclick="go('ingredients')"><span class="msr">inventory</span>Master ingredients</button>
     <button class="navbtn" data-view="collections" onclick="go('collections')"><span class="msr">collections_bookmark</span>Collections</button>
+    <button class="navbtn" data-view="photos" onclick="go('photos')"><span class="msr">photo_library</span>Photos</button>
     <button class="navbtn" data-view="picks" onclick="go('picks')"><span class="msr">event_available</span>Daily picks</button>
     <button class="navbtn" data-view="reports" onclick="go('reports')"><span class="msr">flag</span>Problem reports<span class="cnt" id="repCnt" style="display:none"></span></button>
     <button class="navbtn" data-view="import" onclick="go('import')"><span class="msr">upload_file</span>Import / Export</button>
@@ -643,14 +644,14 @@ function validateRecipe(r){
    ROUTER
    ===================================================================== */
 const TITLES = {dashboard:'Dashboard', recipes:'Recipes', editor:'Recipe editor', ingredients:'Master ingredients',
-  collections:'Collections', picks:'Daily picks', reports:'Problem reports', import:'Import / Export'};
+  collections:'Collections', photos:'Photos', picks:'Daily picks', reports:'Problem reports', import:'Import / Export'};
 function go(view){
   VIEW = view;
   $$('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
   $('#viewTitle').textContent = TITLES[view] || '';
   $('#liveBtn').style.display = view==='dashboard' || view==='import' ? '' : 'none';
   ({dashboard:renderDashboard, recipes:renderRecipes, editor:renderEditor, ingredients:renderIngredients,
-    collections:renderCollections, picks:renderPicks, reports:renderReports, import:renderImport})[view]();
+    collections:renderCollections, photos:renderPhotos, picks:renderPicks, reports:renderReports, import:renderImport})[view]();
   document.querySelector('.main').scrollTop = 0; window.scrollTo(0,0);
 }
 function refreshBadges(){
@@ -979,43 +980,165 @@ function quickAddMi(name){
   renderEditor();
 }
 
-/* image upload — resize to 3 WebP sizes in the browser (demo mode keeps
-   the card size inline; live mode also uploads originals for the
-   Cloud Function to process). */
-function uploadImage(input){
-  const file = input.files[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const img = new Image();
-    img.onload = () => {
-      const sizes = {thumb:400, card:800, full:1200};
-      const outs = {};
-      for(const [name,w] of Object.entries(sizes)){
-        const c = document.createElement('canvas');
-        const sc = Math.min(1, w/img.width);
-        c.width = Math.round(img.width*sc); c.height = Math.round(img.height*sc);
-        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-        outs[name] = c.toDataURL('image/webp', .8);
-      }
-      EDIT.img = true; EDIT.img_data = outs.card;
-      EDIT._pending_upload = outs;
-      if(MODE === 'live' && FB) uploadToStorage(EDIT.id, outs);
-      toast('Photo ready — 3 WebP sizes generated','image');
-      renderEditor();
+/* ===== image pipeline — resize to 3 WebP sizes in the browser, upload
+   to Firebase Storage in live mode, and write the download URLs back
+   into the recipe doc (images: {thumb, card, full}) so the app syncs them. */
+function makeSizesFromFile(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('could not read the file'));
+    reader.onload = e => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('not a valid image'));
+      img.onload = () => {
+        const sizes = {thumb:400, card:800, full:1200};
+        const outs = {};
+        for(const [name,w] of Object.entries(sizes)){
+          const c = document.createElement('canvas');
+          const sc = Math.min(1, w/img.width);
+          c.width = Math.round(img.width*sc); c.height = Math.round(img.height*sc);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          outs[name] = c.toDataURL('image/webp', .8);
+        }
+        resolve(outs);
+      };
+      img.src = e.target.result;
     };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
+    reader.readAsDataURL(file);
+  });
 }
 async function uploadToStorage(recipeId, outs){
   try{
-    const {ref, uploadString} = FB.storageMod;
+    const {ref, uploadString, getDownloadURL} = FB.storageMod;
+    const urls = {};
     for(const [name, data] of Object.entries(outs)){
       const r = ref(FB.storageObj, `recipes/${recipeId}/${name}.webp`);
       await uploadString(r, data.split(',')[1], 'base64', {contentType:'image/webp'});
+      urls[name] = await getDownloadURL(r);
     }
-    toast('Images uploaded to Storage','cloud_done');
-  }catch(err){ toast('Storage upload failed: '+err.code, 'error'); }
+    return urls;
+  }catch(err){
+    toast('Storage upload failed: '+(err.message||err.code||err),'error');
+    return null;
+  }
+}
+function uploadImage(input){
+  const file = input.files[0]; if(!file) return;
+  if(!EDIT.id){ toast('Save the recipe once before adding a photo','error'); return; }
+  makeSizesFromFile(file).then(async outs => {
+    EDIT.img = true; EDIT.img_data = outs.card;
+    EDIT._pending_upload = outs;
+    if(MODE === 'live' && FB){
+      toast('Uploading photo to Storage…','cloud_upload');
+      const urls = await uploadToStorage(EDIT.id, outs);
+      if(urls){
+        EDIT.images = urls;
+        toast('Photo uploaded — click Save so the recipe carries the URLs','cloud_done');
+      }
+    }else{
+      toast('Photo ready — 3 WebP sizes generated','image');
+    }
+    renderEditor();
+  }).catch(err => toast('Could not process image: '+err.message,'error'));
+}
+
+/* ===== Photos view: bulk upload (filename = recipe id) ===== */
+function photoStem(name){
+  return String(name||'').replace(/\.[^.]+$/,'').toLowerCase()
+    .replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+}
+function matchPhotoFile(name, recipes){
+  const stem = photoStem(name);
+  if(!stem) return null;
+  return recipes.find(r => r.id === stem)
+      || recipes.find(r => slugify(r.title||'') === stem)
+      || null;
+}
+function applyPhotoToRecipe(r, urls){
+  const doc = JSON.parse(JSON.stringify(r));
+  doc.img = true;
+  doc.images = urls;
+  doc.updated_at = new Date().toISOString();
+  delete doc._history; delete doc.img_data;
+  return doc;
+}
+let PHQ = null;   // photo queue shared across retry
+function renderPhotos(){
+  const withPhoto = DB.recipes.filter(r => r.images && r.images.card).length;
+  $('#view').innerHTML = `
+  <div class="toolbar"><div class="grow" style="font-size:12.5px;color:var(--text2)">
+    Name each file after its recipe ID (e.g. <code>garlic-butter-shrimp.jpg</code> — IDs are listed below),
+    select all files at once, and the panel resizes each to 3 WebP sizes, uploads them to Firebase Storage
+    and writes the URLs into the recipe. Drafts too — the app only shows published ones.
+    ${MODE==='demo' ? '<br><b style="color:var(--tomato)">Demo mode: files are only marked locally — switch to LIVE to push real photos.</b>' : ''}
+  </div></div>
+  <div class="card" style="padding:18px;margin-bottom:14px">
+    <h4><span class="msr" style="color:var(--tomato)">cloud_upload</span> Bulk upload</h4>
+    <div style="margin:10px 0"><input type="file" id="photoFiles" accept="image/*" multiple></div>
+    <button class="btn btn-primary" onclick="processPhotos(document.getElementById('photoFiles'))"><span class="msr" style="font-size:16px">upload</span>Process files</button>
+    <div class="sizes" style="margin-top:8px">JPG / PNG / WebP. “beef-tacos.png” matches the Beef Tacos recipe (the extension is ignored).</div>
+  </div>
+  ${PHQ ? renderPhotoQueue() : ''}
+  <div class="card" style="padding:18px">
+    <h4><span class="msr" style="color:var(--tomato)">photo_library</span> Recipe IDs & photo status (${withPhoto}/${DB.recipes.length} recipes have photos)</h4>
+    <div class="colgrid">${DB.recipes.map(r=>`<div style="font-size:12.5px;display:flex;gap:6px;align-items:center">
+      <span class="msr" style="font-size:16px;color:${r.images&&r.images.card?'var(--basal)':'var(--text2)'}">${r.images&&r.images.card?'check_circle':'radio_button_unchecked'}</span>
+      <span style="font-family:monospace">${esc(r.id)}</span></div>`).join('')}</div>
+  </div>`;
+}
+function renderPhotoQueue(){
+  return `<div class="card" style="padding:18px;margin-bottom:14px" id="photoQueue">
+    <h4><span class="msr" style="color:var(--tomato)">pending</span> Upload queue</h4>
+    ${PHQ.map(i => `<div style="display:flex;gap:8px;align-items:center;font-size:13px;padding:4px 0">
+      <span class="msr" style="font-size:16px">${i.status===1?'check_circle':i.status===2?'sync':i.status===3?'error':'radio_button_unchecked'}</span>
+      <span style="font-family:monospace">${esc(i.recipe.id)}</span>
+      <span style="color:var(--text2)">${esc(i.label||'')}</span>
+      ${i.status===3 ? `<span style="color:var(--tomato);margin-left:auto">${esc(i.err||'failed')}</span>` : ''}
+    </div>`).join('')}
+    ${PHQ.some(i=>i.status===3) ? '<button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="retryPhotos()">Retry failed</button>' : ''}
+  </div>`;
+}
+async function processPhotos(input){
+  const files = [...(input.files||[])];
+  if(!files.length) return;
+  const q = [], unmatched = [];
+  for(const f of files){
+    const r = matchPhotoFile(f.name, DB.recipes);
+    if(r) q.push({file:f, recipe:r, label:r.title||r.id, status:0, err:null});
+    else unmatched.push(f.name);
+  }
+  PHQ = q;
+  renderPhotos();
+  if(unmatched.length) toast(unmatched.length+' file(s) matched no recipe — filenames must be recipe IDs (listed below)','error');
+  if(q.length) await runPhotoQueue();
+}
+async function runPhotoQueue(){
+  for(const item of PHQ){
+    if(item.status === 1 || item.status === 2) continue;
+    item.status = 2; renderPhotos();
+    try{
+      const outs = await makeSizesFromFile(item.file);
+      if(MODE === 'live' && FB){
+        const urls = await uploadToStorage(item.recipe.id, outs);
+        if(!urls) throw new Error('Storage upload failed');
+        const doc = applyPhotoToRecipe(item.recipe, urls);
+        Object.assign(item.recipe, {img:true, images:urls, updated_at:doc.updated_at});
+        persist();
+        await putDoc('recipes', item.recipe.id, normalizeRecipeForFirestore(doc));
+      }else{
+        Object.assign(item.recipe, {img:true, img_data:outs.card});
+        persist();
+      }
+      item.status = 1;
+    }catch(err){ item.status = 3; item.err = err.message || String(err); }
+    renderPhotos();
+  }
+  const bad = PHQ.filter(i=>i.status===3).length;
+  toast(bad ? bad+' photo upload(s) failed — see the queue' : 'All photos processed', bad?'error':'check_circle');
+}
+function retryPhotos(){
+  PHQ.forEach(i => { if(i.status === 3){ i.status = 0; i.err = null; } });
+  renderPhotos(); runPhotoQueue();
 }
 
 /* save */
@@ -1158,6 +1281,13 @@ function renderCollections(){
         <button title="Move down" onclick="moveColl('${c.id}',1)"><span class="msr" style="font-size:16px">keyboard_arrow_down</span></button>
       </span></h4>
     <input type="text" value="${esc(c.desc||'')}" placeholder="Short description" oninput="DB.collections.find(x=>x.id==='${c.id}').desc=this.value">
+    <div style="margin-top:10px">
+      <div style="font-size:11.5px;color:var(--text2);margin-bottom:4px">Cover recipe — photo shown on the app's Home tile</div>
+      <select onchange="DB.collections.find(x=>x.id==='${c.id}').cover_recipe=this.value||null; persist()" style="width:100%">
+        <option value="">— First recipe in collection —</option>
+        ${DB.recipes.filter(r=>(r.collections||[]).includes(c.id)).map(r=>`<option value="${esc(r.id)}" ${(c.cover_recipe||'')===r.id?'selected':''}>${esc(r.title||r.id)}</option>`).join('') || '<option value="" disabled>No recipes in this collection yet</option>'}
+      </select>
+    </div>
     <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
       <label class="checkline" style="padding:0"><input type="checkbox" ${c.show_on_home?'checked':''}
         onchange="DB.collections.find(x=>x.id==='${c.id}').show_on_home=this.checked">Show on Home</label>
